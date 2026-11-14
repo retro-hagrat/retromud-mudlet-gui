@@ -25,11 +25,12 @@ NEGATIVE = ("smooth, blurry, anti-aliased, photo, realistic, 3d, perspective, te
             "shadow outside the shape, gradient, noise, jpeg artifacts")
 
 MOTIF = {
-    "dark": "dungeon slate, small indigo rune studs in the corners, calm, cool, low contrast",
-    "light": "warm parchment paper, ink border, small corner flourishes, clean and bright",
-    "flame": "charred black stone, glowing ember cracks and corner rivets, warm and fiery",
-    "ocean": "deep sea, small aquamarine coral and wave details in the corners, cool and calm",
-    "forest": "mossy dark wood and leaves, small leaf details in the corners",
+    "welstar": "white marble and gold trim, paladin heraldry with shields, swords and laurel wreaths, fluted columns, noble and orderly",
+    "crypt": "vampire crypt, black-violet stone and bone, blood crimson accents, small bats and fangs, stalactite arches, gothic and cold",
+    "sosel": "volcano and jungle, black basalt with glowing lava cracks, dinosaur claw and scale patterns, fern leaves, hot and fierce",
+    "wysoom": "deep ocean, coral and polished shells, shark fins and shark teeth, rolling waves, blue and glowing",
+    "raji": "sky and djinn, Arabian arches and filigree, drifting clouds and stars, lamp and smoke swirls, gold trim, twilight and magical",
+    "perdow": "darkness and carnivorous plants, thorny vines, venus flytrap jaws, pitcher plants with dripping toxic green, crimson flower maws, sinister",
 }
 # role: (target w, h), (generated w, h: multiples of 64), mirror axes, text colour used on it, prompt
 ROLES = {

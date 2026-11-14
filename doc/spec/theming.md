@@ -34,7 +34,7 @@ It cannot change:
 
 THEME-001. A theme must be a Lua table with a fixed set of keys. Section 5 lists the keys.
 
-THEME-002. The first version must ship exactly these five presets: `dark` (the default), `light`, `flame` (reds and oranges), `ocean` (deep blues, cyan, and aquamarine), and `forest` (greens). Appendix A lists the colours. A preset must use soft, rich colours and not pure primary colours.
+THEME-002. The first version must ship exactly one preset for each of the six planets of the Retroverse: `welstar` (light, paladin), `crypt` (dark, vampire), `sosel` (red volcano, dinosaurs), `wysoom` (blue ocean, sharkmen), `raji` (air, djinn), and `perdow` (darkness, carnivorous plants). The planet style guide in `retroai/docs/rules/rules-planet-style.md` is the source of the looks. Appendix A lists the colours. A preset must use soft, rich colours and not pure primary colours.
 
 THEME-003. A module must not contain a colour, a font name, or an image path. A module asks the theme module for the style of its role.
 
@@ -60,7 +60,7 @@ THEME-013. Every preset must have enough contrast. The ratio uses the WCAG formu
 
 THEME-014. The presets ship without images. An image of the player replaces the background of its role, and the text sits directly on it. The module does not check images. The file `README.txt` in the theme folder must tell the player that an image must keep the text readable. A later version can put a half-transparent layer over an image. See section 5.
 
-THEME-019. Theming is on by default. The GUI applies the saved theme, or `dark` when no theme is saved. Map theming is on by default. The player can turn map theming off with a setting.
+THEME-019. Theming is on by default. The GUI applies the saved theme, or `perdow` when no theme is saved. `perdow` is the home world of the game. Map theming is on by default. The player can turn map theming off with a setting.
 
 THEME-015. When the GUI changes the map colours, it must first save the old values with `getMapBackgroundColor()` and `getMapRoomExitsColor()`. It must put them back when the package is uninstalled and when the player turns map theming off.
 
@@ -112,7 +112,7 @@ The function `rmgui.theme.apply(name)` does these steps in order:
 
 1. Find the preset with this name. If it does not exist, show a message and stop. The old theme stays.
 2. Merge the override file over the preset (THEME-010).
-3. Check the merged theme. A key that is missing gets the value of the `dark` preset. A value of the wrong type is replaced in the same way, and the module shows one message.
+3. Check the merged theme. A key that is missing gets the value of the default theme (`perdow`). A value of the wrong type is replaced in the same way, and the module shows one message.
 4. Find the image for each role. The theme folder comes first. Then comes the folder of the preset. If no file exists, the role has no image (THEME-008).
 5. Call the function of each registered element, inside `pcall` (THEME-007). The function receives the merged theme and the image paths. It calls the style setters again (THEME-005).
 6. If map theming is on, save the old map colours when this is the first apply, and set the map colours (THEME-015).
@@ -141,47 +141,48 @@ A theme can be a separate package. The package holds a `theme.lua` file and its 
 
 ## 11. Open questions
 
-1. Do we add a `high-contrast` preset later? The five presets all pass 4.5 to 1 for text. A preset with 7 to 1 would help players with low vision.
-2. Do we want a second dark and a second light preset later, for players who like variety?
+1. Do we add a `high-contrast` preset later? The six presets all pass 4.5 to 1 for text. A preset with 7 to 1 would help players with low vision.
+2. Do we want more presets later, for example a plain neutral dark and light pair for players who do not want a planet look?
 3. What are the right names and sizes of the files in section 6? We need to test image sizes and memory use.
 4. Do spaces in the path of an image work in `border-image`? We did not test this.
-5. Does `changeMenuStyle("light")` of an `Adjustable.Container` match our light preset? We did not look at the result.
+5. Does `changeMenuStyle("light")` of an `Adjustable.Container` match the `welstar` preset? We did not look at the result.
 6. Is `rgui` a good alias prefix?
 
-## Appendix A: the five presets
+## Appendix A: the six presets
 
-The colours are `r,g,b`. The player can change any of them in the override file. All colours were chosen to look soft and rich. None is a pure primary colour.
+The colours are `r,g,b`. The player can change any of them in the override file. All colours were chosen to look soft and rich. None is a pure primary colour. Each preset follows the style guide of its planet.
 
-- `dark`: a blue-grey slate, not pure black, with an indigo accent.
-- `light`: warm paper with deep ink text and a royal indigo accent.
-- `flame`: charred brown-black with cream text and an ember orange accent. State colours stay warm: coral red, amber, and gold.
-- `ocean`: deep navy with an aquamarine accent. The gauges use coral, azure, and aqua.
-- `forest`: deep green-black with a fresh leaf-green accent.
+- `welstar` (law, paladin): white marble and warm stone, deep navy ink, royal blue accent, and gold borders. The only light preset.
+- `crypt` (earth, vampire): black-violet stone with bone-coloured text and a blood crimson accent.
+- `sosel` (fire, volcano, dinosaurs): basalt brown-black with lava orange and red, and jungle green for good states.
+- `wysoom` (water, sharkmen): deep sea navy with a cyan accent. The gauges use coral, azure, and aqua.
+- `raji` (air, djinn): twilight indigo with djinn gold and turquoise.
+- `perdow` (chaos, carnivorous plants, darkness): near-black green with a toxic green accent and crimson flower red. This is the default.
 
-| Token | `dark` | `light` | `flame` | `ocean` | `forest` |
-|---|---|---|---|---|---|
-| `surface` | 24,27,33 | 248,247,244 | 32,18,16 | 10,26,44 | 16,30,22 |
-| `surfaceAlt` | 34,38,46 | 236,233,226 | 52,28,22 | 16,42,66 | 26,48,36 |
-| `text` | 226,230,236 | 36,40,48 | 252,236,224 | 222,240,248 | 226,238,226 |
-| `textMuted` | 150,158,170 | 96,102,112 | 206,160,140 | 140,176,196 | 150,176,152 |
-| `accent` | 129,140,248 | 66,84,214 | 255,138,61 | 102,235,200 | 140,214,110 |
-| `border` | 58,64,76 | 206,201,190 | 112,52,38 | 30,78,110 | 44,78,56 |
-| `good` | 74,200,140 | 28,128,84 | 160,196,96 | 102,235,170 | 126,220,140 |
-| `warn` | 240,185,80 | 160,100,0 | 255,196,64 | 250,208,100 | 236,190,90 |
-| `danger` | 240,100,110 | 190,50,60 | 255,92,80 | 255,120,130 | 232,110,96 |
-| `hp` | 240,100,110 | 190,50,60 | 255,92,80 | 255,120,130 | 232,110,96 |
-| `sp` | 110,140,245 | 52,88,200 | 255,170,64 | 80,170,255 | 110,190,220 |
-| `ep` | 92,200,160 | 24,124,96 | 255,214,102 | 90,230,210 | 150,220,120 |
-| `map.background` | 16,18,22 | 240,238,232 | 24,12,10 | 6,18,32 | 10,22,14 |
-| `map.exits` | 120,128,142 | 120,114,104 | 214,110,64 | 70,170,200 | 110,160,120 |
+| Token | `welstar` | `crypt` | `sosel` | `wysoom` | `raji` | `perdow` |
+|---|---|---|---|---|---|---|
+| `surface` | 247,246,241 | 20,18,24 | 30,18,14 | 8,24,46 | 30,28,58 | 10,16,14 |
+| `surfaceAlt` | 234,231,221 | 32,27,36 | 50,28,20 | 14,40,72 | 44,40,82 | 18,30,24 |
+| `text` | 30,34,46 | 236,228,220 | 250,236,222 | 222,240,250 | 240,236,250 | 222,236,226 |
+| `textMuted` | 88,94,108 | 170,158,156 | 212,166,140 | 140,176,200 | 178,170,214 | 150,176,156 |
+| `accent` | 40,72,168 | 214,64,92 | 255,104,56 | 64,196,230 | 240,190,80 | 150,224,70 |
+| `border` | 190,160,86 | 84,44,56 | 120,46,28 | 28,74,116 | 96,84,150 | 40,70,40 |
+| `good` | 24,120,80 | 120,190,150 | 140,200,96 | 96,224,176 | 110,214,190 | 110,214,140 |
+| `warn` | 150,96,0 | 226,184,96 | 255,196,72 | 250,208,104 | 255,204,96 | 236,190,84 |
+| `danger` | 178,40,52 | 240,96,104 | 255,96,92 | 255,122,132 | 255,128,150 | 232,84,120 |
+| `hp` | 178,40,52 | 236,84,100 | 255,96,92 | 255,122,132 | 255,128,150 | 232,84,120 |
+| `sp` | 44,84,184 | 140,150,230 | 255,176,64 | 92,170,255 | 130,170,255 | 140,150,240 |
+| `ep` | 18,118,96 | 150,200,170 | 140,204,100 | 96,224,200 | 110,214,190 | 150,224,70 |
+| `map.background` | 238,235,226 | 14,12,18 | 22,12,10 | 5,16,34 | 22,20,46 | 6,10,8 |
+| `map.exits` | 112,100,76 | 160,140,140 | 230,120,70 | 72,160,208 | 150,140,210 | 110,150,100 |
 
 Contrast ratios, computed with the WCAG formula on 2026-11-14. Each cell is the lowest ratio in its group.
 
-| Check | Limit | `dark` | `light` | `flame` | `ocean` | `forest` |
-|---|---|---|---|---|---|---|
-| `text` and `textMuted` on `surface` and `surfaceAlt` | 4.5 | 5.6 | 4.8 | 6.8 | 6.4 | 6.0 |
-| `accent` on `surface` and `surfaceAlt` | 3 | 5.1 | 5.0 | 6.8 | 10.0 | 8.0 |
-| `good`, `warn`, `danger`, `hp`, `sp`, `ep` on `surface` | 3 | 5.5 | 4.5 | 6.0 | 6.9 | 5.6 |
-| `map.exits` on `map.background` | 3 | 4.7 | 4.1 | 5.6 | 7.0 | 6.1 |
+| Check | Limit | `welstar` | `crypt` | `sosel` | `wysoom` | `raji` | `perdow` |
+|---|---|---|---|---|---|---|---|
+| `text` and `textMuted` on `surface` and `surfaceAlt` | 4.5 | 5.3 | 6.5 | 7.3 | 6.5 | 6.3 | 7.3 |
+| `accent` on `surface` and `surfaceAlt` | 3 | 6.6 | 3.8 | 5.6 | 7.2 | 8.0 | 10.7 |
+| `good`, `warn`, `danger`, `hp`, `sp`, `ep` on `surface` | 3 | 4.9 | 5.3 | 6.2 | 7.1 | 6.8 | 5.5 |
+| `map.exits` on `map.background` | 3 | 4.9 | 6.1 | 6.5 | 6.5 | 5.9 | 5.9 |
 
 All cells are at or above their limit.

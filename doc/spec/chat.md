@@ -156,7 +156,7 @@ CHAT-062. The module must not add names to the global namespace. It keeps all st
 
 CHAT-063. When the package is uninstalled, the module must remove its triggers, its handlers, and its panels. See "Install and uninstall" in `doc/design.md`.
 
-CHAT-064. The player must be able to use the tab bar with the keyboard. The tab bar and the marks must have enough contrast in all five theme presets.
+CHAT-064. The player must be able to use the tab bar with the keyboard. The tab bar and the marks must have enough contrast in all six theme presets.
 
 ## 5. Interfaces
 

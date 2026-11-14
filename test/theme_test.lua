@@ -26,7 +26,7 @@ local function problemsMention(problems, part, label)
     eq(found, true, label)
 end
 
-local NAMES = { "dark", "light", "flame", "ocean", "forest" }
+local NAMES = { "welstar", "crypt", "sosel", "wysoom", "raji", "perdow" }
 
 ---------------------------------------------------------------- presets
 for _, n in ipairs(NAMES) do
@@ -36,11 +36,13 @@ for _, n in ipairs(NAMES) do
     eq(type(p.title) == "string" and p.title ~= "", true, "preset has a title: " .. n)
     eq(type(p.description) == "string" and p.description ~= "", true, "preset has a description: " .. n)
 end
-local count5 = 0
-for _ in pairs(T.presets) do count5 = count5 + 1 end
-eq(count5, 5, "exactly five presets")
+local count6 = 0
+for _ in pairs(T.presets) do count6 = count6 + 1 end
+eq(count6, 6, "exactly six presets")
+eq(T.presets[T.default] ~= nil, true, "the default theme exists")
+eq(T.default, "perdow", "the default theme is perdow")
 
--- every preset has every key of dark (THEME-001), and the same types
+-- every preset has every key of the default theme (THEME-001), and the same types
 local function sameShape(a, b, path, label)
     for k, v in pairs(a) do
         eq(b[k] ~= nil, true, label .. " has " .. path .. k)
@@ -48,8 +50,8 @@ local function sameShape(a, b, path, label)
     end
 end
 for _, n in ipairs(NAMES) do
-    sameShape(T.presets.dark, T.presets[n], "", "preset " .. n)
-    sameShape(T.presets[n], T.presets.dark, "", "dark vs " .. n)
+    sameShape(T.presets[T.default], T.presets[n], "", "preset " .. n)
+    sameShape(T.presets[n], T.presets[T.default], "", "default vs " .. n)
 end
 
 -- presets are different from each other
@@ -83,38 +85,38 @@ for _, n in ipairs(NAMES) do
     eq(#bad, 0, "preset passes contrast: " .. n .. " " .. table.concat(bad, "; "))
 end
 -- a theme below a limit is reported
-local weak = T.resolve("dark", { colors = { text = { 40, 44, 52 } } })
+local weak = T.resolve("perdow", { colors = { text = { 40, 44, 52 } } })
 local bad = T.contrastProblems(weak)
 eq(#bad >= 2, true, "weak text fails on both surfaces")
 problemsMention(bad, "text on surface", "report names the pair")
-local weakAccent = T.resolve("dark", { colors = { accent = { 30, 34, 40 } } })
+local weakAccent = T.resolve("perdow", { colors = { accent = { 30, 34, 40 } } })
 problemsMention(T.contrastProblems(weakAccent), "accent on surface", "weak accent is reported")
-local weakMap = T.resolve("dark", { colors = { map = { exits = { 18, 20, 24 } } } })
+local weakMap = T.resolve("perdow", { colors = { map = { exits = { 18, 20, 24 } } } })
 problemsMention(T.contrastProblems(weakMap), "map exits", "weak map exits are reported")
-local weakGauge = T.resolve("dark", { colors = { hp = { 30, 30, 36 } } })
+local weakGauge = T.resolve("perdow", { colors = { hp = { 30, 30, 36 } } })
 problemsMention(T.contrastProblems(weakGauge), "hp on surface", "weak gauge colour is reported")
 -- an override that keeps a preset valid does not add problems
-local fine = T.resolve("light", { colors = { accent = { 20, 40, 160 } } })
+local fine = T.resolve("welstar", { colors = { accent = { 20, 40, 160 } } })
 eq(#T.contrastProblems(fine), 0, "valid override passes contrast")
 
 ---------------------------------------------------------------- merge (THEME-010)
-local theme, problems = T.resolve("flame")
+local theme, problems = T.resolve("sosel")
 eq(#problems, 0, "no override: no problems")
-eq(theme.colors.accent[1], 255, "flame accent red channel")
-eq(theme.name, "flame", "flame name")
+eq(theme.colors.accent[1], 255, "sosel accent red channel")
+eq(theme.name, "sosel", "sosel name")
 theme, problems = T.resolve("nope")
 eq(theme, nil, "unknown theme returns nil"); has(problems, "unknown theme", "unknown theme reason")
-theme, problems = T.resolve("dark", { colors = { accent = { 1, 2, 3 } } })
+theme, problems = T.resolve("perdow", { colors = { accent = { 1, 2, 3 } } })
 eq(theme.colors.accent[2], 2, "override replaces a colour"); eq(#problems, 0, "valid override: no problems")
-eq(theme.colors.surface[1], 24, "other colours stay")
-eq(T.presets.dark.colors.accent[1], 129, "the preset table is not changed by an override")
-theme, problems = T.resolve("dark", { colors = { accent = { 1, 2, 3, 128 } } })
+eq(theme.colors.surface[1], 10, "other colours stay")
+eq(T.presets[T.default].colors.accent[1], 150, "the preset table is not changed by an override")
+theme, problems = T.resolve("perdow", { colors = { accent = { 1, 2, 3, 128 } } })
 eq(theme.colors.accent[4], 128, "colour with alpha is accepted")
 -- nested table
-theme = T.resolve("dark", { colors = { map = { background = { 5, 6, 7 } } } })
-eq(theme.colors.map.background[3], 7, "nested override applies"); eq(theme.colors.map.exits[1], 120, "nested sibling stays")
+theme = T.resolve("perdow", { colors = { map = { background = { 5, 6, 7 } } } })
+eq(theme.colors.map.background[3], 7, "nested override applies"); eq(theme.colors.map.exits[1], 110, "nested sibling stays")
 -- unknown keys
-theme, problems = T.resolve("dark", { bogus = 1, colors = { nonsense = { 1, 2, 3 } } })
+theme, problems = T.resolve("perdow", { bogus = 1, colors = { nonsense = { 1, 2, 3 } } })
 eq(#problems, 2, "two unknown keys"); problemsMention(problems, "bogus: unknown key", "top-level unknown key")
 problemsMention(problems, "colors.nonsense: unknown key", "nested unknown key"); eq(theme.bogus, nil, "unknown key is not copied")
 -- wrong types
@@ -135,65 +137,93 @@ local cases = {
     { { images = { sidebar = "x.png" } }, "images.sidebar: unknown key", "unknown image role" },
 }
 for _, c in ipairs(cases) do
-    local t, p = T.resolve("dark", c[1])
+    local t, p = T.resolve("perdow", c[1])
     eq(#p, 1, c[3] .. ": one problem")
     problemsMention(p, c[2], c[3] .. ": message")
 end
-theme = T.resolve("dark", { colors = { accent = "red" }, fonts = { size = 12 } })
-eq(theme.colors.accent[1], 129, "bad colour keeps the old value"); eq(theme.fonts.size, 12, "good key still applies")
-theme = T.resolve("dark", { images = { panel = "p.png" } })
+theme = T.resolve("perdow", { colors = { accent = "red" }, fonts = { size = 12 } })
+eq(theme.colors.accent[1], 150, "bad colour keeps the old value"); eq(theme.fonts.size, 12, "good key still applies")
+theme = T.resolve("perdow", { images = { panel = "p.png" } })
 eq(theme.images.panel, "p.png", "image file name accepted")
-theme = T.resolve("dark", { images = { panel = false } }); eq(theme.images.panel, false, "image false accepted")
-theme, problems = T.resolve("dark", {}); eq(#problems, 0, "empty override")
-theme, problems = T.resolve("dark", nil); eq(#problems, 0, "nil override")
--- THEME-001 gaps in a preset are filled from dark
+theme = T.resolve("perdow", { images = { panel = false } }); eq(theme.images.panel, false, "image false accepted")
+theme, problems = T.resolve("perdow", {}); eq(#problems, 0, "empty override")
+theme, problems = T.resolve("perdow", nil); eq(#problems, 0, "nil override")
+-- THEME-001 gaps in a preset are filled from the default theme
 local saved = T.presets.test
 T.presets.test = { name = "test", title = "T", description = "d", colors = { accent = { 9, 9, 9 } } }
 theme, problems = T.resolve("test")
-eq(theme.colors.accent[1], 9, "partial preset keeps its own value"); eq(theme.colors.surface[1], 24, "partial preset is filled from dark")
-eq(theme.fonts.size, 10, "partial preset gets fonts from dark"); eq(#problems, 0, "partial preset has no problems")
+eq(theme.colors.accent[1], 9, "partial preset keeps its own value"); eq(theme.colors.surface[1], 10, "partial preset is filled from the default")
+eq(theme.fonts.size, 10, "partial preset gets fonts from the default"); eq(#problems, 0, "partial preset has no problems")
 T.presets.test = saved
 
 ---------------------------------------------------------------- stylesheets
-local dark = T.resolve("dark")
+local base = T.resolve("perdow")
 for _, role in ipairs(T.roles) do
-    local css = T.css(role, dark)
+    local css = T.css(role, base)
     has(css, "QLabel{", role .. ": wrapped in QLabel"); has(css, "background-color: rgb(", role .. ": has a background")
     has(css, "color: rgb(", role .. ": has a text colour"); has(css, "font-size: 10pt;", role .. ": has a font size")
     lacks(css, "border-image", role .. ": no image, no border-image")
 end
-local css = T.css("statusbar", dark)
-has(css, "background-color: rgb(34,38,46);", "statusbar uses surfaceAlt"); has(css, "color: rgb(226,230,236);", "statusbar uses text")
+local css = T.css("statusbar", base)
+has(css, "background-color: rgb(18,30,24);", "statusbar uses surfaceAlt"); has(css, "color: rgb(222,236,226);", "statusbar uses text")
 lacks(css, "border:", "statusbar has no border")
-css = T.css("window", dark); has(css, "background-color: rgb(24,27,33);", "window uses surface")
-css = T.css("panel", dark); has(css, "border: 1px solid rgb(58,64,76);", "panel has a border")
-css = T.css("button", dark)
-has(css, "QLabel::hover{border: 1px solid rgb(129,140,248);}", "button has an accent hover")
-css = T.css("tab", dark); has(css, "color: rgb(150,158,170);", "tab uses textMuted")
-css = T.css("tabActive", dark); has(css, "border: 1px solid rgb(129,140,248);", "active tab has an accent border")
-lacks(T.css("panel", dark), "::hover", "panel has no hover rule")
+css = T.css("window", base); has(css, "background-color: rgb(10,16,14);", "window uses surface")
+css = T.css("panel", base); has(css, "border: 1px solid rgb(40,70,40);", "panel has a border")
+css = T.css("button", base)
+has(css, "QLabel::hover{border: 1px solid rgb(150,224,70);}", "button has an accent hover")
+css = T.css("tab", base); has(css, "color: rgb(150,176,156);", "tab uses textMuted")
+css = T.css("tabActive", base); has(css, "border: 1px solid rgb(150,224,70);", "active tab has an accent border")
+lacks(T.css("panel", base), "::hover", "panel has no hover rule")
 -- images
-css = T.css("panel", dark, "/home/u/theme/panel.png")
-has(css, 'border-image: url("/home/u/theme/panel.png");', "image uses border-image"); lacks(css, "background-color", "image replaces the background")
-has(css, "color: rgb(226,230,236);", "text colour stays with an image")
-css = T.css("panel", dark, "C:\\Users\\u\\panel.png"); has(css, 'url("C:/Users/u/panel.png")', "backslashes become slashes")
-css = T.css("panel", dark, "/home/u/my theme/panel.png"); has(css, 'url("/home/u/my theme/panel.png")', "spaces in the path are kept")
-css = T.css("panel", dark, '/x/"; evil: 1; "/p.png'); lacks(css, "border-image", "path with a quote is ignored"); lacks(css, "evil", "no injected rule")
+css = T.css("panel", base, "/home/u/theme/panel.png")
+has(css, 'border-image: url("/home/u/theme/panel.png") 8 8 8 8 round round;', "panel image is nine-slice 8")
+has(css, "border-width: 16px 16px 16px 16px;", "panel border width is the slice times the scale"); lacks(css, "background-color", "image replaces the background")
+lacks(css, "border: 1px", "image replaces the plain border")
+has(css, "color: rgb(222,236,226);", "text colour stays with an image")
+css = T.css("panel", base, "C:\\Users\\u\\panel.png"); has(css, 'url("C:/Users/u/panel.png")', "backslashes become slashes")
+css = T.css("panel", base, "/home/u/my theme/panel.png"); has(css, 'url("/home/u/my theme/panel.png")', "spaces in the path are kept")
+css = T.css("panel", base, '/x/"; evil: 1; "/p.png'); lacks(css, "border-image", "path with a quote is ignored"); lacks(css, "evil", "no injected rule")
 has(css, "background-color", "unsafe image falls back to colour")
-css = T.css("panel", dark, "/x/a\nb.png"); lacks(css, "border-image", "path with a newline is ignored")
-css = T.css("panel", dark, "/x/a\rb.png"); lacks(css, "border-image", "path with a carriage return is ignored")
+css = T.css("panel", base, "/x/a\nb.png"); lacks(css, "border-image", "path with a newline is ignored")
+css = T.css("panel", base, "/x/a\rb.png"); lacks(css, "border-image", "path with a carriage return is ignored")
+-- nine-slice for every image role (the art contract of doc/spec/theming.md)
+local slices = { statusbar = { "4 8 4 8", "8px 16px 8px 16px" }, button = { "6 6 6 6", "12px 12px 12px 12px" },
+                 tab = { "4 4 4 4", "8px 8px 8px 8px" }, tabActive = { "4 4 4 4", "8px 8px 8px 8px" } }
+for role, w in pairs(slices) do
+    css = T.css(role, base, "/i/" .. role .. ".png")
+    has(css, 'url("/i/' .. role .. '.png") ' .. w[1] .. " round round;", role .. " slices")
+    has(css, "border-width: " .. w[2] .. ";", role .. " border width"); has(css, "color: rgb(", role .. " keeps the text colour with an image")
+    has(css, "font-size: 10pt;", role .. " keeps the font with an image"); lacks(css, "::hover", role .. " has no hover rule with an image")
+end
+css = T.css("button", base); has(css, "QLabel::hover", "button without an image keeps its hover")
+-- the scale changes the border width, not the slices
+local big = T.resolve("perdow", { imageScale = 3 })
+css = T.css("panel", big, "/i/p.png"); has(css, " 8 8 8 8 round round;", "scale 3 keeps the slices"); has(css, "border-width: 24px 24px 24px 24px;", "scale 3 border width")
+css = T.css("statusbar", big, "/i/s.png"); has(css, "border-width: 12px 24px 12px 24px;", "scale 3 statusbar border width")
+eq(T.resolve("perdow").imageScale, 2, "default scale is 2")
+for _, n in ipairs(NAMES) do eq(T.resolve(n).imageScale, 2, "preset scale is 2: " .. n) end
+for _, bad in ipairs({ 1.5, 0, -1, "2" }) do
+    local th, pr = T.resolve("perdow", { imageScale = bad })
+    eq(th.imageScale, 2, "bad scale keeps the old value: " .. tostring(bad)); eq(#pr, 1, "bad scale reports one problem: " .. tostring(bad))
+end
+eq(#select(2, T.resolve("perdow", { imageScale = 1 })), 0, "scale 1 is valid"); eq(T.resolve("perdow", { imageScale = 4 }).imageScale, 4, "scale 4 is valid")
+-- the window image is a tile at its own size
+css = T.css("window", base, "/i/window.png")
+has(css, 'background-image: url("/i/window.png"); background-repeat: repeat;', "window image is a tile")
+lacks(css, "border-image", "window image has no border-image"); lacks(css, "border-width", "window image has no border width")
+has(css, "color: rgb(", "window image keeps the text colour")
 -- fonts
-local f = T.resolve("dark", { fonts = { family = "Fira Sans", size = 11 } })
+local f = T.resolve("perdow", { fonts = { family = "Fira Sans", size = 11 } })
 css = T.css("statusbar", f); has(css, 'font-family: "Fira Sans";', "font family is set"); has(css, "font-size: 11pt;", "font size is set")
-lacks(T.css("statusbar", dark), "font-family", "empty family adds no font-family")
-f = T.resolve("dark", { fonts = { family = 'x"; background: red; "' } })
+lacks(T.css("statusbar", base), "font-family", "empty family adds no font-family")
+f = T.resolve("perdow", { fonts = { family = 'x"; background: red; "' } })
 lacks(T.css("statusbar", f), "font-family", "unsafe family is ignored")
 -- alpha
-local a = T.resolve("dark", { colors = { surface = { 1, 2, 3, 128 } } })
+local a = T.resolve("perdow", { colors = { surface = { 1, 2, 3, 128 } } })
 has(T.css("window", a), "rgba(1,2,3,128)", "alpha colour uses rgba")
-a = T.resolve("dark", { colors = { surface = { 1, 2, 3, 255 } } }); has(T.css("window", a), "rgb(1,2,3)", "alpha 255 uses rgb")
+a = T.resolve("perdow", { colors = { surface = { 1, 2, 3, 255 } } }); has(T.css("window", a), "rgb(1,2,3)", "alpha 255 uses rgb")
 -- unknown role
-local none, why = T.css("nope", dark); eq(none, nil, "unknown role returns nil"); has(why, "unknown role", "unknown role reason")
+local none, why = T.css("nope", base); eq(none, nil, "unknown role returns nil"); has(why, "unknown role", "unknown role reason")
 -- every preset builds a stylesheet for every role
 for _, n in ipairs(NAMES) do
     local th = T.resolve(n)
@@ -207,16 +237,16 @@ local function exists(p) return files[p] == true end
 eq(T.findImage("panel", "ocean", dirs, exists), nil, "no file: nil")
 files["/pkg/themes/ocean/panel.png"] = true
 eq(T.findImage("panel", "ocean", dirs, exists), "/pkg/themes/ocean/panel.png", "theme folder is used")
-eq(T.findImage("panel", "dark", dirs, exists), nil, "another theme does not use it")
+eq(T.findImage("panel", "perdow", dirs, exists), nil, "another theme does not use it")
 eq(T.findImage("button", "ocean", dirs, exists), nil, "another role does not use it")
 files["/p/retromud-gui-theme/panel.png"] = true
 eq(T.findImage("panel", "ocean", dirs, exists), "/p/retromud-gui-theme/panel.png", "player folder wins")
-eq(T.findImage("panel", "dark", dirs, exists), "/p/retromud-gui-theme/panel.png", "player image applies to every theme")
+eq(T.findImage("panel", "perdow", dirs, exists), "/p/retromud-gui-theme/panel.png", "player image applies to every theme")
 
 ---------------------------------------------------------------- speed
 local t0 = os.clock()
 for i = 1, 2000 do
-    local th = T.resolve(NAMES[i % 5 + 1], { colors = { accent = { 1, 2, 3 } } })
+    local th = T.resolve(NAMES[i % 6 + 1], { colors = { accent = { 1, 2, 3 } } })
     for _, role in ipairs(T.roles) do T.css(role, th) end
     T.contrastProblems(th)
 end

@@ -33,19 +33,21 @@ local function overlay(out, base, over, path, problems)
             if type(v) == "table" then overlay(out[k], b, v, p .. ".", problems) else bad = "expected a table" end
         elseif b == false then bad = not (type(v) == "string" or v == false) and "expected a file name or false"
         elseif type(v) ~= type(b) then bad = "expected a " .. type(b)
-        elseif type(v) == "number" and v <= 0 then bad = "must be above 0" end
+        elseif type(v) == "number" and v <= 0 then bad = "must be above 0"
+        elseif k == "imageScale" and v % 1 ~= 0 then bad = "must be a whole number" end
         if bad then problems[#problems + 1] = p .. ": " .. bad
         elseif type(b) ~= "table" or isColor(b) then out[k] = copy(v) end
     end
 end
 
--- The named preset, filled from `dark`, with the player's override on top.
+-- The named preset, filled from the default theme, with the player's override on top.
 -- Returns the theme and a list of problems, or nil and a reason.
 function T.resolve(name, override)
     local preset = T.presets[name]
     if not preset then return nil, "unknown theme: " .. tostring(name) end
-    local problems, theme = {}, copy(T.presets.dark)
-    overlay(theme, T.presets.dark, preset, "", problems)
+    local base = T.presets[T.default]
+    local problems, theme = {}, copy(base)
+    overlay(theme, base, preset, "", problems)
     overlay(theme, copy(theme), override or {}, "", problems)
     return theme, problems
 end
@@ -96,24 +98,43 @@ local STYLE = {
     tabActive = { bg = "surface", fg = "text", border = "accent" },
 }
 
+-- Image slices (top, right, bottom, left) in image pixels: the art contract of
+-- doc/spec/theming.md. The window role has no slices because it is a tile.
+local NINE = {
+    panel = { 8, 8, 8, 8 }, statusbar = { 4, 8, 4, 8 }, button = { 6, 6, 6, 6 },
+    tab = { 4, 4, 4, 4 }, tabActive = { 4, 4, 4, 4 },
+}
+
 -- Stylesheet for a Geyser label. The rule is wrapped in QLabel{} so a tooltip does not
--- inherit it. With an image, border-image stretches it and keeps text on top.
--- An unsafe image path is ignored (THEME-008).
+-- inherit it. An image is nine-slice: the corners stay sharp at imageScale times their
+-- size and the edges and the middle repeat. Plain stretching smears pixel art (tested in
+-- Mudlet). A window image is a tile at its own size. Text sits on top of the image.
+-- An unsafe image path is ignored (THEME-008). shortcut: no hover look with an image;
+-- add a second image per role if players want one.
 function T.css(role, theme, imagePath)
     local s = STYLE[role]
     if not s then return nil, "unknown role: " .. tostring(role) end
     local c, f = theme.colors, theme.fonts
     local fill = "background-color: " .. rgba(c[s.bg]) .. ";"
+    local border = s.border and ("border: 1px solid " .. rgba(c[s.border]) .. ";")
+    local hover = s.hover
     if imagePath and not imagePath:find('["\n\r]') then
-        fill = ('border-image: url("%s");'):format(imagePath:gsub("\\", "/"))
+        local path, n, k = imagePath:gsub("\\", "/"), NINE[role], theme.imageScale
+        if n then
+            fill = ('border-image: url("%s") %d %d %d %d round round;'):format(path, n[1], n[2], n[3], n[4])
+            border = ("border-width: %dpx %dpx %dpx %dpx;"):format(n[1] * k, n[2] * k, n[3] * k, n[4] * k)
+        else
+            fill = ('background-image: url("%s"); background-repeat: repeat;'):format(path)
+        end
+        hover = nil
     end
     local parts = { fill, "color: " .. rgba(c[s.fg]) .. ";", ("font-size: %dpt;"):format(f.size) }
+    if border then parts[#parts + 1] = border end
     if f.family ~= "" and not f.family:find('["\n\r;{}]') then
         parts[#parts + 1] = ('font-family: "%s";'):format(f.family)
     end
-    if s.border then parts[#parts + 1] = "border: 1px solid " .. rgba(c[s.border]) .. ";" end
     local out = "QLabel{" .. table.concat(parts, " ") .. "}"
-    if s.hover then out = out .. "QLabel::hover{border: 1px solid " .. rgba(c[s.hover]) .. ";}" end
+    if hover then out = out .. "QLabel::hover{border: 1px solid " .. rgba(c[hover]) .. ";}" end
     return out
 end
 
