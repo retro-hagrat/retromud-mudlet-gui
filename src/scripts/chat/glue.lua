@@ -5,7 +5,7 @@ rmgui.chat = rmgui.chat or {}
 local C = rmgui.chat
 
 local NAME = "rmgui.chat"
-local STRIP_PX = 40 -- height of the tab strip: the same as a button, and the tab art is the button art
+local STRIP_PX = 80 -- the tab strip is two rows of 40 px tabs (the button height): one row of seven was too narrow for the art
 
 -- shortcut: fixed font size, the env has no way to read the main window font. Upgrade when env gets one.
 local FONT = 12
@@ -63,15 +63,15 @@ local function drawTab(id)
         local size = tonumber(S.ctx.theme and S.ctx.theme.fonts and S.ctx.theme.fonts.sizeSmall) or 9
         pcall(txt.setStyleSheet, txt, ("QLabel{background-color: transparent; color: %s; font-size: %dpt;}"):format(S.ctx.textColor(role), size))
     end
-    pcall(target.echo, target, title(id), S.ctx and S.ctx.textColor(role) or nil)
+    pcall(target.echo, target, title(id), S.ctx and S.ctx.textColor(role) or nil, "c") -- centred in the tab
 end
 
 local function layoutTabs()
-    local n = #S.order
+    local cols = math.ceil(#S.order / 2)
     for i, id in ipairs(S.order) do
         local l = S.tabs[id]
-        pcall(l.move, l, ("%.4f%%"):format((i - 1) * 100 / n), 0)
-        pcall(l.resize, l, ("%.4f%%"):format(100 / n), "100%")
+        pcall(l.move, l, ("%.4f%%"):format(((i - 1) % cols) * 100 / cols), ("%.4f%%"):format(math.floor((i - 1) / cols) * 50))
+        pcall(l.resize, l, ("%.4f%%"):format(100 / cols), "50%")
     end
 end
 

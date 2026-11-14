@@ -50,12 +50,12 @@ start()
 eq(slot.children[1].name, "rmgui.chat.strip", "strip lives in the slot")
 do -- the tab strip is 40 px high (the button height), whatever the slot height
     local strip = F.objects["rmgui.chat.strip"]
-    eq(math.abs(strip:get_height() - 40) < 0.5, true, "tab strip is 40 px high in a 600 px slot")
-    eq(math.abs(F.objects["rmgui.chat.console.all"]:get_y() - slot:get_y() - 40) < 0.5, true, "console starts under the strip")
+    eq(math.abs(strip:get_height() - 80) < 0.5, true, "tab strip is 80 px high (two rows) in a 600 px slot")
+    eq(math.abs(F.objects["rmgui.chat.console.all"]:get_y() - slot:get_y() - 80) < 0.5, true, "console starts under the strip")
     slot.height = 300; F.fire("rmgui.onLayout", { layout = "wide" })
-    eq(math.abs(strip:get_height() - 40) < 0.5, true, "strip stays 40 px after the slot shrinks to 300 px")
-    eq(math.abs(F.objects["rmgui.chat.console.all"]:get_y() - slot:get_y() - 40) < 0.5, true, "console follows after a layout event")
-    eq(math.abs(F.objects["rmgui.chat.console.all"]:get_height() - 260) < 0.5, true, "console height is the rest of the slot")
+    eq(math.abs(strip:get_height() - 80) < 0.5, true, "strip stays 80 px after the slot shrinks to 300 px")
+    eq(math.abs(F.objects["rmgui.chat.console.all"]:get_y() - slot:get_y() - 80) < 0.5, true, "console follows after a layout event")
+    eq(math.abs(F.objects["rmgui.chat.console.all"]:get_height() - 220) < 0.5, true, "console height is the rest of the slot")
     slot.height = 600; F.fire("rmgui.onLayout", { layout = "wide" })
 end
 for _, id in ipairs({ "all", "chat", "world", "party", "info", "guild", "tells" }) do
@@ -69,7 +69,10 @@ eq(F.objects["rmgui.chat.console.chat"].hidden, true, "other console hidden")
 eq(F.objects["rmgui.chat.console.all"].wrap == nil and F.objects["rmgui.chat.console.all"].autoWrap, true, "wrap on")
 eq(F.objects["rmgui.chat.console.all"].maxLines, env.settings.chat.maxLines, "buffer limit set")
 eq(#F.triggers, 1, "one trigger")
-eq(tab("chat").x, "14.2857%", "tabs share the strip")
+eq(tab("chat").x, "25.0000%", "tabs share the strip: four columns")
+eq(tab("chat").y, "0.0000%", "second tab is in the first row")
+eq(tab("guild").y, "50.0000%", "sixth tab is in the second row")
+eq(tab("guild").x, "25.0000%", "sixth tab starts the second row at column two")
 
 ---------------------------------------------------------------- routing
 F.lines("Aldric [mentor]: Welcome to the game!", "You [hit]: 120")
@@ -133,7 +136,7 @@ world(); G.init(env)
 F.lines("Aldric <wiz>: test message", "x")
 eq(txt("wizard"):find("Aldric <wiz>", 1, true) ~= nil, true, "wizard line arrives as the game sent it")
 eq(tab("wizard") ~= nil, true, "wizard tab created")
-eq(tab("chat").x, "12.5000%", "tabs re-spaced")
+eq(tab("chat").x, "25.0000%", "tabs re-spaced: eight tabs are still four columns")
 F.lines("Aldric <arch>: again", "x")
 local n = 0
 for _, o in ipairs(F.objectList) do if o.name == "rmgui.chat.tab.wizard" then n = n + 1 end end
