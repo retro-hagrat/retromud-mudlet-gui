@@ -25,6 +25,14 @@ local function report(where, err)
     if env and env.say then pcall(env.say, msg, "err") end
 end
 
+-- The bar behind the label already has the image and its frame. The label only carries the text, so
+-- it gets a transparent plain style: giving it the full statusbar stylesheet put the 8 px image
+-- borders inside a 20 px bar and left no room for the text (seen in a live Mudlet).
+local function textStyle(c)
+    local size = type(c.theme) == "table" and type(c.theme.fonts) == "table" and c.theme.fonts.size or 10
+    return ("QLabel{background-color: transparent; color: %s; font-size: %dpt;}"):format(c.textColor("statusbar"), size)
+end
+
 local function render()
     if not label then return end
     local ok, err = pcall(function()
@@ -53,7 +61,7 @@ local function build()
         { name = LABEL, x = 0, y = 0, width = "100%", height = "100%" }, container)
     if not made or not l then report("label", l) return end
     label = l
-    if ctx then pcall(label.setStyleSheet, label, ctx.css("statusbar")) end
+    if ctx then pcall(label.setStyleSheet, label, textStyle(ctx)) end
     render()
 end
 
@@ -95,7 +103,7 @@ function S.init(e)
     pcall(seed)
     pcall(rmgui.theme.register, ELEMENT, function(c)
         ctx = c
-        if label then pcall(label.setStyleSheet, label, c.css("statusbar")) end
+        if label then pcall(label.setStyleSheet, label, textStyle(c)) end
         render()
     end)
     on("rmap.onRoom", function(room)

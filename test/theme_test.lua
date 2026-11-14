@@ -190,7 +190,7 @@ css = T.css("panel", base, "/x/a\nb.png"); lacks(css, "border-image", "path with
 css = T.css("panel", base, "/x/a\rb.png"); lacks(css, "border-image", "path with a carriage return is ignored")
 -- nine-slice for every image role (the art contract of doc/spec/theming.md)
 local slices = { statusbar = { "8 16 8 16", "8px 16px 8px 16px" }, button = { "12 12 12 12", "12px 12px 12px 12px" },
-                 tab = { "8 8 8 8", "8px 8px 8px 8px" }, tabActive = { "8 8 8 8", "8px 8px 8px 8px" } }
+                 tab = { "12 12 12 12", "12px 12px 12px 12px" }, tabActive = { "12 12 12 12", "12px 12px 12px 12px" } }
 for role, w in pairs(slices) do
     css = T.css(role, base, "/i/" .. role .. ".png")
     has(css, 'url("/i/' .. role .. '.png") ' .. w[1] .. " repeat repeat;", role .. " slices")

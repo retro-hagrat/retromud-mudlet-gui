@@ -42,9 +42,9 @@ ROLES = {
         "a wide bar, 64x32 pixels, 16 pixel end caps on the left and the right, a plain flat dark center strip, a thin border line on the top and the bottom"),
     "button": ((48, 48), (384, 384), "x", "text",
         "a small square button frame, 48x48 pixels, 12 pixel corners, slightly raised look with a light top edge and a darker bottom edge, plain flat center"),
-    "tab": ((48, 32), (384, 256), "x", "textMuted",
+    "tab": ((48, 48), (384, 384), "x", "textMuted",
         "an inactive tab, 48x32 pixels, 8 pixel corners, muted colors, plain flat center"),
-    "tabActive": ((48, 32), (384, 256), "x", "text",
+    "tabActive": ((48, 48), (384, 384), "x", "text",
         "an active tab, 48x32 pixels, 8 pixel corners, bright accent color on the top edge, slightly lighter plain flat center"),
 }
 # Slices (top, right, bottom, left) in art pixels. Must match NINE in src/scripts/theme/logic.lua.
@@ -55,9 +55,12 @@ ROLE_OVERRIDE = {
         "and damask floral pattern in the style of woven brocade silk, deep indigo and violet cloth with gold thread, "
         "the pattern runs along the top band and the bottom band and fills the 16 pixel end caps, "
         "a plain flat dark center strip",
+    ("sosel", "button"): "a small square button frame, 48x48 pixels, 12 pixel corners, the TOP edge is a row of erupting "
+        "volcano peaks with glowing orange lava and dark smoke on black basalt, the BOTTOM edge is lush green jungle "
+        "leaves and ferns, plain flat dark center",
 }
 SLICE = {"window": None, "panel": (16, 16, 16, 16), "statusbar": (8, 16, 8, 16),
-         "button": (12, 12, 12, 12), "tab": (8, 8, 8, 8), "tabActive": (8, 8, 8, 8)}
+         "button": (12, 12, 12, 12), "tab": (12, 12, 12, 12), "tabActive": (12, 12, 12, 12)}
 
 
 def load_palettes():
@@ -97,6 +100,22 @@ def contrast(a, b):
 
 # The middle of a frame is where text sits. The model ignores "plain center", so the
 # script paints it with a flat colour of the theme. The window tile is blended toward the surface.
+# The tabs are built from the button art, so they share its patterned edges (the player liked the
+# button bottom best). They are not generated.
+DERIVED = ("tab", "tabActive")
+
+
+def derive_tabs(button, pal):
+    """tab = the button; tabActive = the button with the lighter text area and an accent line on top."""
+    tab = button.copy()
+    active = button.copy(); px = active.load()
+    for y in range(12, active.height - 12):
+        for x in range(12, active.width - 12): px[x, y] = pal["surface"]
+    for y in range(2):
+        for x in range(active.width): px[x, y] = pal["accent"]
+    return tab, active
+
+
 FILL = {"panel": "surface", "statusbar": "surfaceAlt", "button": "surfaceAlt", "tab": "surfaceAlt", "tabActive": "surface"}
 WINDOW_BLEND = 0.55  # share of the surface colour mixed into the window tile
 
@@ -148,12 +167,23 @@ def worst_contrast(img, role, theme_pal):
     return min(contrast(text, img.getpixel((x, y))) for x in range(box[0], box[2]) for y in range(box[1], box[3]))
 
 
-def call_runware(tasks, key):
-    req = urllib.request.Request("https://api.runware.ai/v1", json.dumps(tasks).encode(), method="POST",
-        headers={"Authorization": "Bearer " + key, "Content-Type": "application/json", "User-Agent": "retromud-gui-art/1"})
-    with urllib.request.urlopen(req, timeout=180) as r: body = json.load(r)
-    if body.get("errors"): sys.exit("Runware returned errors: " + json.dumps(body["errors"])[:500])
-    return {d["taskUUID"]: d["imageURL"] for d in body["data"]}
+def call_runware(tasks, key, tries=3):
+    """One request per theme. Runware is sometimes slow or answers without an image URL, so retry."""
+    last = None
+    for attempt in range(1, tries + 1):
+        try:
+            req = urllib.request.Request("https://api.runware.ai/v1", json.dumps(tasks).encode(), method="POST",
+                headers={"Authorization": "Bearer " + key, "Content-Type": "application/json", "User-Agent": "retromud-gui-art/1"})
+            with urllib.request.urlopen(req, timeout=100) as r: body = json.load(r)
+            if body.get("errors"): sys.exit("Runware returned errors: " + json.dumps(body["errors"])[:500])
+            urls = {d["taskUUID"]: d["imageURL"] for d in body.get("data", []) if d.get("imageURL")}
+            if all(t["taskUUID"] in urls for t in tasks): return urls
+            last = "answer without an image URL for some tasks"
+        except (TimeoutError, urllib.error.URLError, OSError) as e:
+            last = repr(e)
+        print(f"  runware attempt {attempt}/{tries} failed: {last}", file=sys.stderr)
+        for t in tasks: t["taskUUID"] = str(uuid.uuid4())  # a fresh id for the retry
+    sys.exit("Runware failed after %d tries: %s" % (tries, last))
 
 
 def download(url):
@@ -179,6 +209,13 @@ def selftest():
         if role == "window":  # edges match, so it tiles
             assert all(out.getpixel((0, y)) == out.getpixel((w - 1, y)) for y in range(h)), "tile seam x"
             assert all(out.getpixel((x, 0)) == out.getpixel((x, h - 1)) for x in range(w)), "tile seam y"
+    pal0 = load_palettes()["perdow"]
+    btn = cleanup(src, "button", pal0)
+    tab, act = derive_tabs(btn, pal0)
+    assert tab.size == (48, 48) and act.size == (48, 48) and list(tab.getdata()) == list(btn.getdata()), "tab is the button"
+    assert all(act.getpixel((x, 0)) == pal0["accent"] and act.getpixel((x, 1)) == pal0["accent"] for x in range(48)), "accent line"
+    assert all(act.getpixel((x, y)) == pal0["surface"] for x in range(12, 36) for y in range(12, 36)), "active text area"
+    assert act.getpixel((24, 47)) == btn.getpixel((24, 47)), "the patterned bottom is kept"
     assert abs(contrast((0, 0, 0), (255, 255, 255)) - 21) < 1e-6
     pal = load_palettes()
     assert set(pal) == set(MOTIF) and all("textMuted" in p for p in pal.values()), "palette parse"
@@ -191,15 +228,29 @@ def main():
     ap.add_argument("--theme"); ap.add_argument("--role"); ap.add_argument("--seed", type=int)
     ap.add_argument("--dry-run", action="store_true"); ap.add_argument("--selftest", action="store_true")
     ap.add_argument("--from-raw", action="store_true", help="redo the cleanup from tmp/theme-art-raw, no API call")
+    ap.add_argument("--derive-tabs", action="store_true", help="build tab.png and tabActive.png from button.png (no API call)")
+    ap.add_argument("--motif", help="replace the motif of the theme for this run")
+    ap.add_argument("--out", help="write the cleaned images into this folder (as <theme>-<role>.png) instead of src/resources, and keep the raw files out of tmp/theme-art-raw")
     a = ap.parse_args()
     if a.selftest: return selftest()
     pal = load_palettes()
+    if a.motif and a.theme: MOTIF[a.theme] = a.motif
     themes = [a.theme] if a.theme else list(MOTIF)
-    roles = [a.role] if a.role else list(ROLES)
+    roles = [a.role] if a.role else [r for r in ROLES if r not in DERIVED]
     for t in themes:
         if t not in pal: sys.exit("unknown theme " + t)
     for r in roles:
         if r not in ROLES: sys.exit("unknown role " + r)
+        if r in DERIVED: sys.exit(f"{r} is built from the button: run with --derive-tabs")
+
+    def write_derived(t):
+        btn = Image.open(os.path.join(OUT, t, "button.png")).convert("RGB")
+        for name, img in zip(DERIVED, derive_tabs(btn, pal[t])):
+            img.save(os.path.join(OUT, t, name + ".png"))
+            print(f"{t}/{name}: derived from the button, worst text contrast {worst_contrast(img, name, pal[t]):.1f}")
+    if a.derive_tabs:
+        for t in themes: write_derived(t)
+        return
     if a.dry_run:
         for t in themes:
             for r in roles: print(f"[{t}/{r}] {ROLES[r][1]}\n  {prompt(t, r, pal)}\n")
@@ -212,6 +263,7 @@ def main():
                 img.save(os.path.join(OUT, t, r + ".png"))
                 c = worst_contrast(img, r, pal[t])
                 print(f"{t}/{r}: wrote {img.size[0]}x{img.size[1]}, worst text contrast {c:.1f}" + ("  WARN below 4.5" if c < 4.5 else ""))
+            if "button" in roles: write_derived(t)
         return
     key = os.environ.get("RUNWARE_API_KEY") or sys.exit("RUNWARE_API_KEY must be set")
     model = os.environ.get("RUNWARE_MODEL", "runware:100@1")
@@ -224,11 +276,17 @@ def main():
         os.makedirs(os.path.join(OUT, t), exist_ok=True)
         for r, task in zip(roles, tasks):
             data = download(urls[task["taskUUID"]])
-            open(os.path.join(RAW, f"{t}-{r}.png"), "wb").write(data)
             img = cleanup(Image.open(io.BytesIO(data)), r, pal[t])
-            img.save(os.path.join(OUT, t, r + ".png"))
+            if a.out:
+                os.makedirs(a.out, exist_ok=True)
+                open(os.path.join(a.out, f"{t}-{r}-raw.png"), "wb").write(data)
+                img.save(os.path.join(a.out, f"{t}-{r}.png"))
+            else:
+                open(os.path.join(RAW, f"{t}-{r}.png"), "wb").write(data)
+                img.save(os.path.join(OUT, t, r + ".png"))
             c = worst_contrast(img, r, pal[t])
             print(f"{t}/{r}: wrote {img.size[0]}x{img.size[1]}, worst text contrast {c:.1f}" + ("  WARN below 4.5" if c < 4.5 else ""))
+        if "button" in roles and not a.out: write_derived(t)
 
 
 if __name__ == "__main__":

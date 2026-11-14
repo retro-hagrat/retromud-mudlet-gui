@@ -110,7 +110,7 @@ CHAT-021. The six world channels must be one group. The player must be able to s
 
 CHAT-022. In the settings file, the player must be able to change which channels belong to which tab. The player must also be able to add a tab and to hide a tab.
 
-CHAT-023. In a tab that holds a group, each line must show its channel name. In a tab that holds one channel, the module does not need to show it.
+CHAT-023. In a tab that holds a group, the player must be able to see which channel a line came from. Every line form that the game sends already names its channel, so the module adds no prefix. If a line form without a channel name appears, the module adds one.
 
 CHAT-024. A line can appear on two tabs. It appears on `All` and on its own tab.
 

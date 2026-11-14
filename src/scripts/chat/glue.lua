@@ -5,7 +5,7 @@ rmgui.chat = rmgui.chat or {}
 local C = rmgui.chat
 
 local NAME = "rmgui.chat"
-local STRIP_PX = 32 -- height of the tab strip: the tab image is 32 px high
+local STRIP_PX = 40 -- height of the tab strip: the same as a button, and the tab art is the button art
 
 -- shortcut: fixed font size, the env has no way to read the main window font. Upgrade when env gets one.
 local FONT = 12

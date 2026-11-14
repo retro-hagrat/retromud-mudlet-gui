@@ -36,9 +36,9 @@ local cases = {
 for _, c in ipairs(cases) do
     local m = { group = c[1], channel = c[2] }
     eq(tabs(m), "all," .. c[3], "route " .. c[1])
-    eq(C.prefixFor(m, "all"), "[" .. c[2] .. "] ", "all prefix " .. c[1])
-    local want = (c[3] == "party" or c[3] == "tells") and "" or "[" .. c[2] .. "] "
-    eq(C.prefixFor(m, c[3]), want, "own tab prefix " .. c[1])
+    -- the game line already names its channel, so no tab adds a prefix (it showed the channel twice)
+    eq(C.prefixFor(m, "all"), "", "no prefix on all for " .. c[1])
+    eq(C.prefixFor(m, c[3]), "", "no prefix on the own tab for " .. c[1])
 end
 eq(tabs({ group = "mystery" }), "all", "unknown group goes to all only")
 eq(tabs(nil), "all", "nil message goes to all only")

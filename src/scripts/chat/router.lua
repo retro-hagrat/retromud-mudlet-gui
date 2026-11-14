@@ -23,9 +23,9 @@ function C.tabsFor(msg)
     return { "all" }
 end
 
--- party and tells are one channel each, so the channel name adds nothing there
+-- The game line already names its channel in every form ([retro], (Party), [info], the guild decoration,
+-- "telepathically contacts you"), so a prefix only repeated it (seen in a live Mudlet). Kept as a function
+-- so a future line form without a channel name can add one here.
 function C.prefixFor(msg, tabId)
-    if tabId == "party" or tabId == "tells" then return "" end
-    if tabId == "all" or OWN[msg.group] == tabId then return "[" .. tostring(msg.channel) .. "] " end
     return ""
 end

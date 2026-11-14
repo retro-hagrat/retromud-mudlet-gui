@@ -1,2 +1,4 @@
 build/
 tmp/
+tools/theme-art/__pycache__/
+__pycache__/

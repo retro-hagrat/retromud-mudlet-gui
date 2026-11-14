@@ -47,14 +47,14 @@ local function start(opts) world(opts); G.init(env) end
 ---------------------------------------------------------------- build
 start()
 eq(slot.children[1].name, "rmgui.chat.strip", "strip lives in the slot")
-do -- the tab strip is 32 px high (the tab image), whatever the slot height
+do -- the tab strip is 40 px high (the button height), whatever the slot height
     local strip = F.objects["rmgui.chat.strip"]
-    eq(math.abs(strip:get_height() - 32) < 0.5, true, "tab strip is 32 px high in a 600 px slot")
-    eq(math.abs(F.objects["rmgui.chat.console.all"]:get_y() - slot:get_y() - 32) < 0.5, true, "console starts under the strip")
+    eq(math.abs(strip:get_height() - 40) < 0.5, true, "tab strip is 40 px high in a 600 px slot")
+    eq(math.abs(F.objects["rmgui.chat.console.all"]:get_y() - slot:get_y() - 40) < 0.5, true, "console starts under the strip")
     slot.height = 300; F.fire("rmgui.onLayout", { layout = "wide" })
-    eq(math.abs(strip:get_height() - 32) < 0.5, true, "strip stays 32 px after the slot shrinks to 300 px")
-    eq(math.abs(F.objects["rmgui.chat.console.all"]:get_y() - slot:get_y() - 32) < 0.5, true, "console follows after a layout event")
-    eq(math.abs(F.objects["rmgui.chat.console.all"]:get_height() - 268) < 0.5, true, "console height is the rest of the slot")
+    eq(math.abs(strip:get_height() - 40) < 0.5, true, "strip stays 40 px after the slot shrinks to 300 px")
+    eq(math.abs(F.objects["rmgui.chat.console.all"]:get_y() - slot:get_y() - 40) < 0.5, true, "console follows after a layout event")
+    eq(math.abs(F.objects["rmgui.chat.console.all"]:get_height() - 260) < 0.5, true, "console height is the rest of the slot")
     slot.height = 600; F.fire("rmgui.onLayout", { layout = "wide" })
 end
 for _, id in ipairs({ "all", "chat", "world", "party", "info", "guild", "tells" }) do
@@ -73,8 +73,8 @@ eq(tab("chat").x, "14.2857%", "tabs share the strip")
 ---------------------------------------------------------------- routing
 F.lines("Aldric [mentor]: Welcome to the game!", "You [hit]: 120")
 F.feedLine("Hp:1/1 >", { prompt = true })
-eq(txt("all"), "[mentor] Aldric [mentor]: Welcome to the game!|", "all gets prefixed line")
-eq(txt("chat"), "[mentor] Aldric [mentor]: Welcome to the game!|", "chat tab")
+eq(txt("all"), "Aldric [mentor]: Welcome to the game!|", "all gets the line as the game sent it")
+eq(txt("chat"), "Aldric [mentor]: Welcome to the game!|", "chat tab")
 eq(txt("world"), "", "world empty")
 eq(F.lineDeleted, nil, "kept in main by default")
 eq(#events, 1, "onChat raised once the message is complete")
@@ -84,7 +84,7 @@ eq(ev[1] .. ev[2] .. ev[3] .. ev[4] .. ev[5], "mentorchatAldric[]Welcome to the 
 -- continuation: same tabs, no second prefix
 world(); G.init(env)
 F.lines("Aldric [mentor]: The trick with the first room is to look at", "      the sign twice.", "Nothing here.")
-eq(txt("chat"), "[mentor] Aldric [mentor]: The trick with the first room is to look at|      the sign twice.|", "continuation routed")
+eq(txt("chat"), "Aldric [mentor]: The trick with the first room is to look at|      the sign twice.|", "continuation routed")
 eq(events[1][5], "The trick with the first room is to look at the sign twice.", "wrapped text joined")
 
 -- every form
@@ -110,7 +110,7 @@ end
 world(); G.init(env)
 F.lines("Mirel telepathically contacts you with 'hello'")
 eq(txt("tells"), "Mirel telepathically contacts you with 'hello'|", "tell has no prefix on its own tab")
-eq(txt("all"), "[tell] Mirel telepathically contacts you with 'hello'|", "tell prefix on all")
+eq(txt("all"), "Mirel telepathically contacts you with 'hello'|", "tell has no prefix on all either")
 
 -- history ignored
 world(); G.init(env)
@@ -130,7 +130,7 @@ eq(F.lineDeleted, nil, "other groups stay")
 ---------------------------------------------------------------- wizard, unread
 world(); G.init(env)
 F.lines("Aldric <wiz>: test message", "x")
-eq(txt("wizard"):find("[wiz] Aldric", 1, true) ~= nil, true, "wizard line arrives")
+eq(txt("wizard"):find("Aldric <wiz>", 1, true) ~= nil, true, "wizard line arrives as the game sent it")
 eq(tab("wizard") ~= nil, true, "wizard tab created")
 eq(tab("chat").x, "12.5000%", "tabs re-spaced")
 F.lines("Aldric <arch>: again", "x")

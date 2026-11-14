@@ -102,7 +102,7 @@ local STYLE = {
 -- doc/spec/theming.md. The window role has no slices because it is a tile.
 local NINE = {
     panel = { 16, 16, 16, 16 }, statusbar = { 8, 16, 8, 16 }, button = { 12, 12, 12, 12 },
-    tab = { 8, 8, 8, 8 }, tabActive = { 8, 8, 8, 8 },
+    tab = { 12, 12, 12, 12 }, tabActive = { 12, 12, 12, 12 }, -- tabs use the button art
 }
 
 -- Stylesheet for a Geyser label. The rule is wrapped in QLabel{} so a tooltip does not

@@ -105,8 +105,8 @@ The art is pixel art. A plain stretch smears it, which we saw in Mudlet. So ever
 | `panel.png` | The panels | 64 x 64 | 16, 16, 16, 16 | Nine-slice |
 | `statusbar.png` | The status bar | 64 x 32 | 8, 16, 8, 16 | Nine-slice |
 | `button.png` | The buttons | 48 x 48 | 12, 12, 12, 12 | Nine-slice |
-| `tab.png` | An inactive tab | 48 x 32 | 8, 8, 8, 8 | Nine-slice |
-| `tabActive.png` | The active tab | 48 x 32 | 8, 8, 8, 8 | Nine-slice |
+| `tab.png` | An inactive tab | 48 x 48 | 12, 12, 12, 12 | Nine-slice. Built from `button.png`, so it has the same patterned edges |
+| `tabActive.png` | The active tab | 48 x 48 | 12, 12, 12, 12 | Nine-slice. Built from `button.png` with the lighter text area and the accent line |
 
 At the default `imageScale` of 1, the frame of a panel is 16 px on the screen. A frame at the size of 32 art pixels was too small: the test image turned into a blur, so the art uses four times the pixels.
 
@@ -117,7 +117,7 @@ Rules for the art:
 3. The window tile is mixed with the `surface` colour of the theme, so that it stays quiet behind the panels.
 4. The palette has at most 16 colours.
 5. The window tile must have no seam. The generator builds it from one mirrored quadrant.
-6. The active tab has a 2 pixel line of the `accent` colour on its top edge.
+6. The tabs are built from the button art, not generated. The player liked the patterned bottom of the button best, so a tab has the same edges. `tab.png` is the button. `tabActive.png` is the button with the `surface` colour in the text area and a 2 pixel line of the `accent` colour on its top edge. The tab strip is 40 px high, the same as a button.
 7. A button with an image has no hover look. A later version can ship a second image for it.
 
 THEME-020. Every image that ships with a preset and carries text (every role except `window`) must have a flat text area that is the `surface` or `surfaceAlt` colour of its theme. Then the text contrast of section THEME-013 holds by construction. The generator reports the lowest text contrast for each image as a check. The module does not check the images of a player.
@@ -148,7 +148,7 @@ The script `tools/theme-art/generate.py` makes the images with the Runware image
 4. It paints the text area of each frame with a flat theme colour, adds the accent line to the active tab, and mixes the window tile with the `surface` colour.
 5. It reports the lowest text contrast (THEME-020) and warns below 4.5 to 1.
 
-The option `--from-raw` repeats steps 3 to 5 from the saved downloads and needs no API call. The script runs in about 30 seconds for all 36 images.
+The option `--from-raw` repeats steps 3 to 5 from the saved downloads and needs no API call. The option `--derive-tabs` rebuilds `tab.png` and `tabActive.png` from `button.png`. A button run also rebuilds them. The script `tools/theme-art/derive_panel.py <theme>` builds a panel from the status bar of a theme: the top band is the top edge, it is rotated for the left edge and mirrored for the right and bottom edges, and the end cap is the corner. We use it for `raji` so that the panel and the heading match. The script runs in about 30 seconds for all 36 images.
 
 The command `generate.py --dry-run` prints the prompts, and `--selftest` checks the cleanup without the network. The options `--theme`, `--role`, and `--seed` make one image again.
 
