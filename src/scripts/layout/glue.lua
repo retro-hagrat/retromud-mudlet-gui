@@ -14,7 +14,9 @@ local PAD = 4 -- Adjustable padding in pixels
 local GAP, FRAME, MIN_PANEL = 4, 16, 48
 local BUTTONS_H = 72 -- panel height of the button row: the buttons inside are 40 px after the 16 px frame
 local PICKER_W = 144 -- right end of the status bar, reserved for the theme picker button
-local SLOTS = { "chat", "map", "vitals", "buttons" }
+local SLOTS = { "chat", "custom", "map", "vitals", "buttons" }
+local LEFT = { chat = true, custom = true } -- slots that live in the left column
+local CUSTOM_H = 136 -- panel height of the player buttons: 3 rows of about 32 px inside the 16 px frame
 local SIDES = { "Top", "Right", "Bottom", "Left" }
 
 -- live state; emptied in place by teardown. Kept on rmgui so that running this file again (the player
@@ -78,8 +80,8 @@ local function build()
     S.panels, S.inner = {}, {}
     S.inner.top = box("top.inner", S.topLabel)
     S.inner.picker = box("picker.inner", S.topLabel)
-    for i, slot in ipairs(SLOTS) do
-        S.panels[slot] = label(slot, i == 1 and leftCol or rightCol, {})
+    for _, slot in ipairs(SLOTS) do
+        S.panels[slot] = label(slot, LEFT[slot] and leftCol or rightCol, {})
         S.inner[slot] = box(slot .. ".inner", S.panels[slot])
     end
     S.built = true
@@ -122,7 +124,10 @@ local function layoutNow(r)
     place(S.leftBg, 0, 0, lw, ih)
     place(S.rightCol, W - r.right, r.top, r.right, colH)
     place(S.rightBg, 0, 0, rw, ih)
-    panel("chat", 0, lw, ih)
+    local custom = math.floor(CUSTOM_H * k)
+    local chatH = math.max(MIN_PANEL, ih - custom - GAP)
+    panel("chat", 0, lw, chatH)
+    panel("custom", chatH + GAP, lw, custom) -- hugs the bottom of the column
     local avail = ih - 2 * GAP
     local map = math.max(MIN_PANEL, math.floor(avail * 0.5))
     local btn = math.floor(BUTTONS_H * k) -- one slim row of buttons right under the map

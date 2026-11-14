@@ -210,11 +210,16 @@ function Label:setFgColor(...) self.fgColor = { ... } end
 function Label:setFontSize(n) self.fontSize = n end
 function Label:setAlignment(a) self.alignment = a end
 function Label:setToolTip(text, dur) self.tooltip, self.tooltipDuration = text, dur end
-local function fireCb(self, kind)
+local function fireCb(self, kind, ...)
     local cb = self.clickCallbacks[kind]
-    if cb then return cb.fn(table.unpack(cb.args)) end
+    if cb then
+        local a = { table.unpack(cb.args) }
+        for _, v in ipairs({ ... }) do a[#a + 1] = v end -- like Mudlet: the event comes last
+        return cb.fn(table.unpack(a))
+    end
 end
-function Label:fireClick() return fireCb(self, "click") end
+function Label:fireClick(ev) return fireCb(self, "click", ev or { button = "LeftButton" }) end
+function Label:fireRightClick() return fireCb(self, "click", { button = "RightButton" }) end
 function Label:fireEnter() return fireCb(self, "enter") end
 function Label:fireLeave() return fireCb(self, "leave") end
 
@@ -252,6 +257,14 @@ function Gauge:setColor(...) self.color = { ... } end
 function Gauge:setFontSize(n) self.fontSize = n end
 function Gauge:setText(t) self.text = t end
 function Gauge:echo(t, color) self.text, self.textColor = t, color end
+
+local CommandLine = newClass("commandline"); setmetatable(CommandLine, { __index = Base }); CommandLine.className = "CommandLine"
+function CommandLine:getText() methodFail(self, "getText"); return self.typed or "" end
+function CommandLine:print(t) methodFail(self, "print"); self.typed = t end
+function CommandLine:clear() self.typed = "" end
+function CommandLine:setStyleSheet(css) methodFail(self, "setStyleSheet"); self.styleSheet = css end
+function CommandLine:setAction(fn, ...) self.action = fn and { fn = fn, args = { ... } } or nil end
+function CommandLine:enter() local a = self.action if a then return a.fn(table.unpack(a.args), self.typed) end end
 
 local Adj = newClass("adjustablecontainer"); setmetatable(Adj, { __index = Base }); Adj.className = "Adjustable"
 function Adj:attachToBorder(side)
@@ -438,7 +451,7 @@ end
 ---------------------------------------------------------------- Geyser tables
 local function makeGeyser()
     local g = {
-        Label = Label, Container = Container, MiniConsole = MiniConsole, Mapper = Mapper, Gauge = Gauge,
+        Label = Label, Container = Container, MiniConsole = MiniConsole, Mapper = Mapper, Gauge = Gauge, CommandLine = CommandLine,
         StyleSheet = { new = function(_, css) return { css = css, getCSS = function(s) return s.css end } end },
     }
     -- constructors: Class:new(cons, parent)

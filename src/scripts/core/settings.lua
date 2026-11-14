@@ -10,6 +10,7 @@ function S.defaults()
         cmdlineTheming = false,
         layout = { mode = "auto" },
         ui = { hintShown = false },
+        custom = {}, -- the player's buttons, see custom/logic.lua; each entry is checked there
         chat = {
             maxLines = 2000,
             -- true because the spec has not decided yet (CHAT-040, open question 8)
@@ -80,7 +81,7 @@ local function mergeRaw(saved)
     local top = { theme = "theme", mapTheming = "mapTheming", cmdlineTheming = "cmdlineTheming" }
     local flat = {}
     for k, v in pairs(saved) do
-        if k ~= "layout" and k ~= "chat" and k ~= "ui" and k ~= "version" then flat[k] = v end
+        if k ~= "layout" and k ~= "chat" and k ~= "ui" and k ~= "custom" and k ~= "version" then flat[k] = v end
     end
     overlay(flat, out, top, "", problems)
     section(saved, "layout", function(t)
@@ -89,6 +90,7 @@ local function mergeRaw(saved)
     section(saved, "ui", function(t)
         overlay(t, out.ui, { hintShown = "hintShown" }, "ui.", problems)
     end, problems)
+    section(saved, "custom", function(t) out.custom = t end, problems)
     section(saved, "chat", function(t)
         local rest = {}
         for k, v in pairs(t) do if k ~= "keepInMain" then rest[k] = v end end

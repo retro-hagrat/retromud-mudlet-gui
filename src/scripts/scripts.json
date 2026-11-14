@@ -27,6 +27,10 @@
     "isFolder": "yes",
     "isActive": "yes"
   },
+  {"name": "custom",
+    "isFolder": "yes",
+    "isActive": "yes"
+  },
   {"name": "maphost",
     "isFolder": "yes",
     "isActive": "yes"
