@@ -191,6 +191,8 @@ The GUI creates its containers with `autoSave=false` and `autoLoad=false`. It sa
 
 ## Theming (proposed)
 
+The detailed design of the theme table and the apply function is in `doc/spec/theming.md`. This section keeps the short version.
+
 The GUI must be easy to customize, also for players who do not write code. A player can change colors, fonts, and images without editing Lua.
 
 ### Rules for our code
