@@ -210,7 +210,7 @@ rmgui.layout = { get = function() return slot end }
 F.fire("rmgui.onLayout", { layout = "wide" })
 eq(tab("all") ~= nil, true, "built on onLayout")
 F.fire("rmgui.onLayout", { layout = "wide" })
-eq(F.counts().objects, 1 + 1 + 7 * 3, "second onLayout adds nothing (strip, slot, and 7 tabs with image, text and console)")
+eq(F.counts().objects, 1 + 1 + 7 * 3 + 2, "second onLayout adds nothing (strip, slot, 7 tabs with image, text and console, 2 font buttons)")
 G.teardown(env)
 F.objects.slot:delete()
 empty("teardown after late build")
@@ -281,6 +281,23 @@ for _, v in ipairs({ 1e300, math.huge, 0 / 0, -5, 1.5, "x" }) do
     eq(F.objects["rmgui.chat.console.all"].maxLines, 2000, "maxLines " .. tostring(v) .. " falls back")
     G.teardown(env)
 end
+
+-- font size buttons
+start()
+local minus, plus = F.objects["rmgui.chat.font.1"], F.objects["rmgui.chat.font.2"]
+eq(F.objects["rmgui.chat.console.all"].fontSize, 10, "default chat font is 10")
+plus:fireClick()
+eq(F.objects["rmgui.chat.console.all"].fontSize, 11, "A+ grows the font")
+eq(env.settings.chat.fontSize, 11, "font size kept in the settings")
+for _ = 1, 30 do minus:fireClick() end
+eq(F.objects["rmgui.chat.console.all"].fontSize, 6, "A- stops at 6")
+for _ = 1, 30 do plus:fireClick() end
+eq(F.objects["rmgui.chat.console.all"].fontSize, 24, "A+ stops at 24")
+env.settings.chat.fontSize = 14; G.init(env)
+eq(F.objects["rmgui.chat.console.all"].fontSize, 14, "saved font size used")
+env.settings.chat.fontSize = "big"; G.init(env)
+eq(F.objects["rmgui.chat.console.all"].fontSize, 10, "bad saved font size falls back")
+
 
 if COVER then
     debug.sethook()

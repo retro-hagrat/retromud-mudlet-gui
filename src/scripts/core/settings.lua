@@ -13,6 +13,7 @@ function S.defaults()
         custom = {}, -- the player's buttons, see custom/logic.lua; each entry is checked there
         chat = {
             maxLines = 2000,
+            fontSize = 10, -- chat console font, changed with the A- / A+ buttons
             -- true because the spec has not decided yet (CHAT-040, open question 8)
             keepInMain = { chat = true, world = true, wizard = true, info = true, alert = true, guild = true, party = true, tells = true },
         },
@@ -32,6 +33,7 @@ local checks = {
     sideWidth = { positive, "a number above 0" },
     topHeight = { positive, "a number above 0" },
     maxLines = { function(v) return isNum(v) and v % 1 == 0 and v >= 100 and v <= 20000 end, "an integer from 100 to 20000" },
+    fontSize = { function(v) return isNum(v) and v % 1 == 0 and v >= 6 and v <= 24 end, "an integer from 6 to 24" },
     hintShown = { function(v) return type(v) == "boolean" end, "a boolean" },
     keep = { function(v) return type(v) == "boolean" end, "a boolean" },
 }
@@ -94,7 +96,7 @@ local function mergeRaw(saved)
     section(saved, "chat", function(t)
         local rest = {}
         for k, v in pairs(t) do if k ~= "keepInMain" then rest[k] = v end end
-        overlay(rest, out.chat, { maxLines = "maxLines" }, "chat.", problems)
+        overlay(rest, out.chat, { maxLines = "maxLines", fontSize = "fontSize" }, "chat.", problems)
         section(t, "keepInMain", function(km)
             local rules = {}
             for k in pairs(out.chat.keepInMain) do rules[k] = "keep" end

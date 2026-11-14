@@ -14,7 +14,7 @@ local PAD = 4 -- Adjustable padding in pixels
 local GAP, FRAME, MIN_PANEL = 4, 16, 48
 local BUTTONS_H = 72 -- panel height of the button row: the buttons inside are 40 px after the 16 px frame
 local PICKER_W = 144 -- right end of the status bar, reserved for the theme picker button
-local SLOTS = { "chat", "custom", "map", "vitals", "buttons" }
+local SLOTS = { "chat", "custom", "map", "vitals", "party", "buttons" }
 local LEFT = { chat = true, custom = true } -- slots that live in the left column
 local CUSTOM_H = 136 -- panel height of the player buttons: 3 rows of about 32 px inside the 16 px frame
 local SIDES = { "Top", "Right", "Bottom", "Left" }
@@ -128,13 +128,16 @@ local function layoutNow(r)
     local chatH = math.max(MIN_PANEL, ih - custom - GAP)
     panel("chat", 0, lw, chatH)
     panel("custom", chatH + GAP, lw, custom) -- hugs the bottom of the column
-    local avail = ih - 2 * GAP
+    local avail = ih - 3 * GAP
     local map = math.max(MIN_PANEL, math.floor(avail * 0.5))
     local btn = math.floor(BUTTONS_H * k) -- one slim row of buttons right under the map
-    local vit = math.max(MIN_PANEL, avail - map - btn)
+    local rest = avail - map - btn
+    local vit = math.max(MIN_PANEL, math.floor(rest * 0.4)) -- the party needs 8 rows, so it gets the larger share
+    local party = math.max(MIN_PANEL, rest - vit)
     panel("map", 0, rw, map)
     panel("buttons", map + GAP, rw, btn)
     panel("vitals", map + btn + 2 * GAP, rw, vit)
+    panel("party", map + btn + vit + 3 * GAP, rw, party)
     setBorders(r.top, r.right, r.bottom, r.left)
 end
 

@@ -19,6 +19,10 @@
     "isFolder": "yes",
     "isActive": "yes"
   },
+  {"name": "party",
+    "isFolder": "yes",
+    "isActive": "yes"
+  },
   {"name": "chat",
     "isFolder": "yes",
     "isActive": "yes"
@@ -36,6 +40,10 @@
     "isActive": "yes"
   },
   {"name": "themepicker",
+    "isFolder": "yes",
+    "isActive": "yes"
+  },
+  {"name": "transport",
     "isFolder": "yes",
     "isActive": "yes"
   },

@@ -9,17 +9,14 @@ local ELEMENT = "vitals.gauges"
 
 local function rgb(c) return ("rgb(%d, %d, %d)"):format(c[1], c[2], c[3]) end
 
--- The numbers sit in their own label at the left of the bar, on the panel background. Text drawn on
--- the bar itself is unreadable: one colour cannot contrast with both a bright bar and a dark back
--- (seen in a live Mudlet on the bright sosel colours).
+-- The numbers sit in the middle of the bar in black: every theme fill colour is light enough for it.
 local function draw(g, key, label, d)
     local cur, max = d[key], d[key .. "Max"]
-    local bar = math.max(0, math.min(max, cur))
-    g:setValue(bar, max)
+    g:setValue(math.max(0, math.min(max, cur)), max)
+    g.text:echo(("%d/%d"):format(cur, max), "black", "c")
     local l = V.labels and V.labels[key]
     if l then
-        local text = ("%s %d/%d"):format(label, cur, max)
-        if V.textHex then l:echo(text, V.textHex) else l:echo(text) end
+        if V.textHex then l:echo(label, V.textHex) else l:echo(label) end
     end
 end
 
@@ -109,7 +106,7 @@ function V.init(env)
             V.style[k[1]] = {
                 ("background-color: %s; border-radius: 2px;"):format(rgb(c[k[1]])),
                 ("background-color: %s; border-radius: 2px;"):format(rgb(c.surface)),
-                ("color: %s;"):format(rgb(c.text)),
+                "color: black;",
             }
         end
         styleAll()

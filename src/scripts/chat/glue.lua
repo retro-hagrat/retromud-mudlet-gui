@@ -7,8 +7,7 @@ local C = rmgui.chat
 local NAME = "rmgui.chat"
 local STRIP_PX = 80 -- the tab strip is two rows of 40 px tabs (the button height): one row of seven was too narrow for the art
 
--- shortcut: fixed font size, the env has no way to read the main window font. Upgrade when env gets one.
-local FONT = 12
+local FONT_MIN, FONT_MAX, FONT_DEFAULT = 6, 24, 10
 
 -- state lives on C so that a re-run of this file (the player saves it in the editor) still sees and tears down the old objects
 C.state = C.state or {}
@@ -30,6 +29,12 @@ local function refit() -- the slot may have a new size after a layout change
         pcall(c.move, c, 0, pct .. "%")
         pcall(c.resize, c, "100%", (100 - pct) .. "%")
     end
+end
+
+local function fontSize()
+    local f = S.env and S.env.settings and S.env.settings.chat and S.env.settings.chat.fontSize
+    if type(f) ~= "number" or f ~= math.floor(f) then return FONT_DEFAULT end
+    return math.max(FONT_MIN, math.min(FONT_MAX, f))
 end
 
 local function reset(new)
@@ -80,6 +85,44 @@ local function paintConsole(c)
     if s then pcall(c.setColor, c, s[1], s[2], s[3]) end
 end
 
+-- the two font buttons float over the bottom right corner of the consoles
+local function drawFontButtons()
+    for _, b in ipairs(S.fontBtns or {}) do
+        if S.ctx then
+            -- plain text, no art or border: the button image looked like a second tab
+            local hex = S.ctx.textColor("panel")
+            pcall(b.setStyleSheet, b, ("QLabel{background-color: transparent; border: none; color: %s; font-size: 16pt; font-weight: bold;}"):format(hex))
+            pcall(b.echo, b, b.rmText, hex, "c")
+        else
+            pcall(b.echo, b, b.rmText)
+        end
+        pcall(b.raise, b)
+    end
+end
+
+local function changeFont(delta)
+    local settings = S.env.settings
+    local size = math.max(FONT_MIN, math.min(FONT_MAX, fontSize() + delta))
+    if type(settings) == "table" then
+        settings.chat = type(settings.chat) == "table" and settings.chat or {}
+        settings.chat.fontSize = size
+        if type(S.env.saveSettings) == "function" then pcall(S.env.saveSettings) end
+    end
+    for _, c in pairs(S.consoles) do pcall(c.setFontSize, c, size) end
+end
+
+local function addFontButtons()
+    S.fontBtns = {}
+    for i, def in ipairs({ { "-", -1 }, { "+", 1 } }) do
+        local b = Geyser.Label:new({ name = NAME .. ".font." .. i, x = (86 + (i - 1) * 7) .. "%", y = "94%", width = "6.5%", height = "4.5%" }, S.slot)
+        b.rmText = def[1]
+        pcall(b.setClickCallback, b, function() changeFont(def[2]) end)
+        S.objs[#S.objs + 1] = b
+        S.fontBtns[i] = b
+    end
+    drawFontButtons()
+end
+
 local function activate(id)
     if not S.tabs[id] then return end
     S.active = id
@@ -107,7 +150,7 @@ local function addTab(id)
         width = "100%", height = (100 - pct) .. "%" }, S.slot)
     S.objs[#S.objs + 1] = c
     S.consoles[id] = c
-    pcall(c.setFontSize, c, FONT)
+    pcall(c.setFontSize, c, fontSize())
     pcall(c.enableAutoWrap, c)
     local max = S.env.settings and S.env.settings.chat and S.env.settings.chat.maxLines
     if type(max) ~= "number" or max < 1 or max ~= math.floor(max) or max > 1000000 then max = 2000 end -- Lua 5.1: no math.tointeger
@@ -119,12 +162,13 @@ local function addTab(id)
     layoutTabs()
     drawTab(id)
     if def.id == S.active then c:show() end
+    drawFontButtons() -- a new console stacks above the buttons: raise them again
 end
 
 local function destroyObjects()
     for i = #S.objs, 1, -1 do pcall(S.objs[i].delete, S.objs[i]) end
     S.objs, S.tabs, S.tabText, S.consoles, S.order, S.unread = {}, {}, {}, {}, {}, {}
-    S.strip, S.built = nil, false
+    S.strip, S.built, S.fontBtns = nil, false, nil
 end
 
 local function build()
@@ -138,6 +182,7 @@ local function build()
         S.objs[#S.objs + 1] = S.strip
         for _, t in ipairs(C.TABS) do if not t.lazy then addTab(t.id) end end
         activate("all")
+        addFontButtons()
     end)
     if not ok2 then
         say("chat panel failed: " .. tostring(err), "err")
@@ -197,6 +242,7 @@ local function applyTheme(ctx)
     S.ctx = ctx
     for id in pairs(S.tabs) do drawTab(id) end
     for _, c in pairs(S.consoles) do paintConsole(c) end
+    drawFontButtons()
 end
 
 local function teardown(env)

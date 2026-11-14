@@ -1,0 +1,44 @@
+[
+  {
+    "name": "wt-help",
+    "isActive": "yes",
+    "isFolder": "no",
+    "regex": "^wt(?: help)?$"
+  },
+  {
+    "name": "wt-shaft",
+    "isActive": "yes",
+    "isFolder": "no",
+    "regex": "^wt shaft (\\S+)$"
+  },
+  {
+    "name": "wt-ship",
+    "isActive": "yes",
+    "isFolder": "no",
+    "regex": "^wt ship (\\S+)$"
+  },
+  {
+    "name": "wt-key",
+    "isActive": "yes",
+    "isFolder": "no",
+    "regex": "^wt key (\\S+)$"
+  },
+  {
+    "name": "wt-pod",
+    "isActive": "yes",
+    "isFolder": "no",
+    "regex": "^wt pod (\\S+)$"
+  },
+  {
+    "name": "wt-grove",
+    "isActive": "yes",
+    "isFolder": "no",
+    "regex": "^wt grove (\\S+)$"
+  },
+  {
+    "name": "wt-gate",
+    "isActive": "yes",
+    "isFolder": "no",
+    "regex": "^wt gate (\\S+)$"
+  }
+]
