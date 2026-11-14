@@ -34,7 +34,7 @@ It cannot change:
 
 THEME-001. A theme must be a Lua table with a fixed set of keys. Section 5 lists the keys.
 
-THEME-002. The GUI must ship at least these presets: `dark` (the default), `light`, and `high-contrast`. It can ship more, for example `amber` and `forest`.
+THEME-002. The first version must ship exactly these five presets: `dark` (the default), `light`, `flame` (reds and oranges), `ocean` (deep blues, cyan, and aquamarine), and `forest` (greens). Appendix A lists the colours. A preset must use soft, rich colours and not pure primary colours.
 
 THEME-003. A module must not contain a colour, a font name, or an image path. A module asks the theme module for the style of its role.
 
@@ -56,9 +56,11 @@ THEME-011. The module must save the name of the active theme in the settings fil
 
 THEME-012. The GUI must offer these commands: `rgui theme` (shows the active theme and the list of themes), `rgui theme <name>` (applies a theme), and `rgui theme reload` (reads the theme folder and the override file again and applies the active theme).
 
-THEME-013. The text of every preset must have enough contrast against its background: a ratio of at least 4.5 to 1 for normal text, and at least 7 to 1 in the `high-contrast` preset. Other parts of the GUI that carry meaning, such as borders of tabs and marks of unread lines, must reach 3 to 1. A test must compute these ratios for each preset. The test must fail when a preset is below the limit.
+THEME-013. Every preset must have enough contrast. The ratio uses the WCAG formula for relative luminance. The ratio of `text` and of `textMuted` against `surface` and against `surfaceAlt` must be at least 4.5 to 1. The ratio of `accent`, of `good`, `warn`, `danger`, `hp`, `sp`, and `ep` against `surface`, and of the exit lines against the map background must be at least 3 to 1. The colour `border` is decoration and has no limit. A test must compute these ratios for each preset and for the merged theme of a player. The test must fail when a ratio is below its limit.
 
 THEME-014. Text must sit on a solid or semi-transparent background, also when the theme has an image. A background image must never make text unreadable. The player can lower the opacity of an image with the key `imageOpacity`.
+
+THEME-019. Theming is on by default. The GUI applies the saved theme, or `dark` when no theme is saved. Map theming is on by default. The player can turn map theming off with a setting.
 
 THEME-015. When the GUI changes the map colours, it must first save the old values with `getMapBackgroundColor()` and `getMapRoomExitsColor()`. It must put them back when the package is uninstalled and when the player turns map theming off.
 
@@ -139,9 +141,47 @@ A theme can be a separate package. The package holds a `theme.lua` file and its 
 
 ## 11. Open questions
 
-1. Should map theming be on by default? The map colours belong to the whole profile. The GUI can restore them, so on by default is acceptable. This is your decision.
-2. Which presets do we ship in the first version? We propose `dark`, `light`, `high-contrast`, `amber`, and `forest`.
+1. Do we add a `high-contrast` preset later? The five presets all pass 4.5 to 1 for text. A preset with 7 to 1 would help players with low vision.
+2. Do we want a second dark and a second light preset later, for players who like variety?
 3. What are the right names and sizes of the files in section 6? We need to test image sizes and memory use.
 4. Do spaces in the path of an image work in `border-image`? We did not test this.
 5. Does `changeMenuStyle("light")` of an `Adjustable.Container` match our light preset? We did not look at the result.
 6. Is `rgui` a good alias prefix?
+
+## Appendix A: the five presets
+
+The colours are `r,g,b`. The player can change any of them in the override file. All colours were chosen to look soft and rich. None is a pure primary colour.
+
+- `dark`: a blue-grey slate, not pure black, with an indigo accent.
+- `light`: warm paper with deep ink text and a royal indigo accent.
+- `flame`: charred brown-black with cream text and an ember orange accent. State colours stay warm: coral red, amber, and gold.
+- `ocean`: deep navy with an aquamarine accent. The gauges use coral, azure, and aqua.
+- `forest`: deep green-black with a fresh leaf-green accent.
+
+| Token | `dark` | `light` | `flame` | `ocean` | `forest` |
+|---|---|---|---|---|---|
+| `surface` | 24,27,33 | 248,247,244 | 32,18,16 | 10,26,44 | 16,30,22 |
+| `surfaceAlt` | 34,38,46 | 236,233,226 | 52,28,22 | 16,42,66 | 26,48,36 |
+| `text` | 226,230,236 | 36,40,48 | 252,236,224 | 222,240,248 | 226,238,226 |
+| `textMuted` | 150,158,170 | 96,102,112 | 206,160,140 | 140,176,196 | 150,176,152 |
+| `accent` | 129,140,248 | 66,84,214 | 255,138,61 | 102,235,200 | 140,214,110 |
+| `border` | 58,64,76 | 206,201,190 | 112,52,38 | 30,78,110 | 44,78,56 |
+| `good` | 74,200,140 | 28,128,84 | 160,196,96 | 102,235,170 | 126,220,140 |
+| `warn` | 240,185,80 | 160,100,0 | 255,196,64 | 250,208,100 | 236,190,90 |
+| `danger` | 240,100,110 | 190,50,60 | 255,92,80 | 255,120,130 | 232,110,96 |
+| `hp` | 240,100,110 | 190,50,60 | 255,92,80 | 255,120,130 | 232,110,96 |
+| `sp` | 110,140,245 | 52,88,200 | 255,170,64 | 80,170,255 | 110,190,220 |
+| `ep` | 92,200,160 | 24,124,96 | 255,214,102 | 90,230,210 | 150,220,120 |
+| `map.background` | 16,18,22 | 240,238,232 | 24,12,10 | 6,18,32 | 10,22,14 |
+| `map.exits` | 120,128,142 | 120,114,104 | 214,110,64 | 70,170,200 | 110,160,120 |
+
+Contrast ratios, computed with the WCAG formula on 2026-11-14. Each cell is the lowest ratio in its group.
+
+| Check | Limit | `dark` | `light` | `flame` | `ocean` | `forest` |
+|---|---|---|---|---|---|---|
+| `text` and `textMuted` on `surface` and `surfaceAlt` | 4.5 | 5.6 | 4.8 | 6.8 | 6.4 | 6.0 |
+| `accent` on `surface` and `surfaceAlt` | 3 | 5.1 | 5.0 | 6.8 | 10.0 | 8.0 |
+| `good`, `warn`, `danger`, `hp`, `sp`, `ep` on `surface` | 3 | 5.5 | 4.5 | 6.0 | 6.9 | 5.6 |
+| `map.exits` on `map.background` | 3 | 4.7 | 4.1 | 5.6 | 7.0 | 6.1 |
+
+All cells are at or above their limit.
