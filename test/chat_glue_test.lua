@@ -47,6 +47,16 @@ local function start(opts) world(opts); G.init(env) end
 ---------------------------------------------------------------- build
 start()
 eq(slot.children[1].name, "rmgui.chat.strip", "strip lives in the slot")
+do -- the tab strip is 32 px high (the tab image), whatever the slot height
+    local strip = F.objects["rmgui.chat.strip"]
+    eq(math.abs(strip:get_height() - 32) < 0.5, true, "tab strip is 32 px high in a 600 px slot")
+    eq(math.abs(F.objects["rmgui.chat.console.all"]:get_y() - slot:get_y() - 32) < 0.5, true, "console starts under the strip")
+    slot.height = 300; F.fire("rmgui.onLayout", { layout = "wide" })
+    eq(math.abs(strip:get_height() - 32) < 0.5, true, "strip stays 32 px after the slot shrinks to 300 px")
+    eq(math.abs(F.objects["rmgui.chat.console.all"]:get_y() - slot:get_y() - 32) < 0.5, true, "console follows after a layout event")
+    eq(math.abs(F.objects["rmgui.chat.console.all"]:get_height() - 268) < 0.5, true, "console height is the rest of the slot")
+    slot.height = 600; F.fire("rmgui.onLayout", { layout = "wide" })
+end
 for _, id in ipairs({ "all", "chat", "world", "party", "info", "guild", "tells" }) do
     eq(tab(id) ~= nil, true, "tab " .. id)
     eq(F.objects["rmgui.chat.console." .. id] ~= nil, true, "console " .. id)

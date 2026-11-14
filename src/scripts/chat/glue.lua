@@ -5,13 +5,32 @@ rmgui.chat = rmgui.chat or {}
 local C = rmgui.chat
 
 local NAME = "rmgui.chat"
-local STRIP = 7 -- percent of the slot height used by the tab strip
+local STRIP_PX = 32 -- height of the tab strip: the tab image is 32 px high
+
 -- shortcut: fixed font size, the env has no way to read the main window font. Upgrade when env gets one.
 local FONT = 12
 
 -- state lives on C so that a re-run of this file (the player saves it in the editor) still sees and tears down the old objects
 C.state = C.state or {}
 local S = C.state
+
+-- The strip height in percent of the slot, so it follows a resize of the slot.
+-- shortcut: Geyser has no "100% minus 32 px" size, so the percent is recalculated on each layout event.
+local function stripPct()
+    local ok, h = pcall(function() return S.slot:get_height() end)
+    if not ok or type(h) ~= "number" or h <= 0 then return 7 end
+    return math.min(30, math.max(2, STRIP_PX * 100 / h))
+end
+
+local function refit() -- the slot may have a new size after a layout change
+    if not S.built or not S.strip then return end
+    local pct = stripPct()
+    pcall(S.strip.resize, S.strip, "100%", pct .. "%")
+    for _, c in pairs(S.consoles or {}) do
+        pcall(c.move, c, 0, pct .. "%")
+        pcall(c.resize, c, "100%", (100 - pct) .. "%")
+    end
+end
 
 local function reset(new)
     for k in pairs(S) do S[k] = nil end
@@ -71,8 +90,9 @@ local function addTab(id)
     S.tabs[id] = label
     S.order[#S.order + 1] = id
     label:setClickCallback(function() pcall(activate, id) end)
-    local c = Geyser.MiniConsole:new({ name = NAME .. ".console." .. id, x = 0, y = STRIP .. "%",
-        width = "100%", height = (100 - STRIP) .. "%" }, S.slot)
+    local pct = stripPct()
+    local c = Geyser.MiniConsole:new({ name = NAME .. ".console." .. id, x = 0, y = pct .. "%",
+        width = "100%", height = (100 - pct) .. "%" }, S.slot)
     S.objs[#S.objs + 1] = c
     S.consoles[id] = c
     pcall(c.setFontSize, c, FONT)
@@ -102,7 +122,7 @@ local function build()
     S.slot = slot
     S.built = true
     local ok2, err = pcall(function()
-        S.strip = Geyser.Container:new({ name = NAME .. ".strip", x = 0, y = 0, width = "100%", height = STRIP .. "%" }, slot)
+        S.strip = Geyser.Container:new({ name = NAME .. ".strip", x = 0, y = 0, width = "100%", height = stripPct() .. "%" }, slot)
         S.objs[#S.objs + 1] = S.strip
         for _, t in ipairs(C.TABS) do if not t.lazy then addTab(t.id) end end
         activate("all")
@@ -184,7 +204,7 @@ local function init(env)
     local ok, err = pcall(function()
         S.engine = C.newEngine()
         rmgui.theme.register("chat.tabs", applyTheme)
-        S.handler = env.registerEvent("rmgui.onLayout", function() build() end)
+        S.handler = env.registerEvent("rmgui.onLayout", function() build(); refit() end)
         build()
         S.trigger = env.lineTrigger(onLine)
     end)

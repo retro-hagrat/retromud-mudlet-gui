@@ -66,9 +66,9 @@ for _, n in ipairs({ "top", "chat", "map", "vitals", "buttons" }) do
 end
 eq(L.get("nope"), nil, "unknown slot")
 local chat, chatIn = F.objects["rmgui.layout.chat"], L.get("chat")
-eq(chat:get_height(), 904 - 36, "chat fills column")
+eq(chat:get_height(), 904 - 36 - 12, "chat fills the Inside area of the column (3 x padding 4 less)")
 eq(chatIn:get_x() - chat:get_x(), 16, "inner inset 16")
-eq(chatIn:get_width(), r.left - 32, "inner width")
+eq(chatIn:get_width(), r.left - 8 - 32, "inner width: column less 2 x padding less 2 x frame")
 local map, vit, btn = F.objects["rmgui.layout.map"], F.objects["rmgui.layout.vitals"], F.objects["rmgui.layout.buttons"]
 eq(vit:get_y() - (map:get_y() + map:get_height()), 4, "gap map/vitals")
 eq(btn:get_y() - (vit:get_y() + vit:get_height()), 4, "gap vitals/buttons")
@@ -85,6 +85,43 @@ T.apply("perdow", env, env.settings)
 eq(F.objects["rmgui.layout.chat"].styleSheet ~= nil, true, "panel css")
 eq(F.objects["rmgui.layout.top"].styleSheet ~= nil, true, "statusbar css")
 eq(F.objects["rmgui.layout.leftBg"].styleSheet ~= nil, true, "bg css")
+
+-- parenting and ABSOLUTE position. Two real bugs hid here: children landed on the root window
+-- because the parent was passed in the constructor table (Geyser takes it as the second
+-- argument), and children of an Adjustable.Container overflowed because Mudlet positions them in
+-- the Inside area but sizes them against the whole container (so they must be parented to Inside).
+do
+    local function obj(n) return F.objects["rmgui.layout." .. n] end
+    local left, right, bar = obj("leftCol"), obj("rightCol"), obj("topBar")
+    local rr = lastLayout(env)
+    eq(right:get_x(), 1920 - rr.right, "right column starts where its border starts")
+    eq(left:get_x(), 0, "left column at the left edge")
+    local function inside(child, col, label)
+        eq(child:get_x() >= col:get_x() and child:get_y() >= col:get_y(), true, label .. " starts inside the column")
+        eq(child:get_x() + child:get_width() <= col:get_x() + col:get_width(), true, label .. " ends inside the column horizontally")
+        eq(child:get_y() + child:get_height() <= col:get_y() + col:get_height(), true, label .. " ends inside the column vertically")
+    end
+    for _, n in ipairs({ "rightBg", "map", "vitals", "buttons" }) do
+        eq(obj(n).parent, right.Inside, n .. " is a child of the right column Inside area")
+        inside(obj(n), right, n)
+        eq(obj(n):get_x(), right.Inside:get_x(), n .. " absolute x is the Inside x")
+    end
+    for _, n in ipairs({ "leftBg", "chat" }) do
+        eq(obj(n).parent, left.Inside, n .. " is a child of the left column Inside area")
+        inside(obj(n), left, n)
+        eq(obj(n):get_x(), left.Inside:get_x(), n .. " absolute x is the Inside x")
+        eq(obj(n):get_y(), left.Inside:get_y(), n .. " absolute y is the Inside y")
+    end
+    eq(obj("top").parent, bar.Inside, "status bar label is a child of the top bar Inside area")
+    inside(obj("top"), bar, "status bar label")
+    eq(obj("top"):get_y(), bar:get_y(), "status bar label absolute y is the top bar y (no padding on the bar)")
+    for _, n in ipairs({ "chat", "map", "vitals", "buttons" }) do
+        eq(obj(n .. ".inner").parent, obj(n), n .. " inner is a child of its panel")
+    end
+    eq(obj("top.inner").parent, obj("top"), "top inner is a child of the status bar label")
+    eq(left.padding, 4, "column padding 4"); eq(bar.padding, 0, "top bar padding 0")
+    eq(left.minimizeLabel.hidden and left.exitLabel.hidden and true or false, true, "title buttons hidden")
+end
 eq(F.objects["rmgui.layout.chat"].text, nil, "echoes nothing")
 -- a bigger image scale re-applies the layout and widens the frame
 local th = T.resolve("perdow"); th.imageScale = 2
@@ -240,7 +277,7 @@ env = mk()
 L.init(env)
 dofile(root .. "/src/scripts/layout/glue.lua")
 L.init(env)
-eq(F.counts().objects, 24, "re-run file then init: no duplicates")
+eq(F.counts().objects, 27, "re-run file then init: no duplicates (24 labels and containers plus 3 Inside areas)")
 L.teardown(); empty("re-run file teardown")
 eq(F.borders.left, 8, "re-run file restores borders")
 -- a timer that raises must not raise into the resize event

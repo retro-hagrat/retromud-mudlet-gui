@@ -10,6 +10,7 @@ rmgui.layout = rmgui.layout or {}
 local L = rmgui.layout
 
 local PREFIX = "rmgui.layout."
+local PAD = 4 -- Adjustable padding in pixels
 local GAP, FRAME, MIN_PANEL = 4, 16, 48
 local SLOTS = { "chat", "map", "vitals", "buttons" }
 local SIDES = { "Top", "Right", "Bottom", "Left" }
@@ -34,33 +35,43 @@ local function track(obj)
     return obj
 end
 
+-- Children go into the Inside area of an Adjustable.Container: given the container itself,
+-- Mudlet positions them inside but sizes their percentages against the whole container.
+local function inner(parent) return parent.Inside or parent end
+
 local function label(name, parent, cons)
+    parent = inner(parent)
     cons.name = PREFIX .. name
     cons.x, cons.y = cons.x or 0, cons.y or 0
     cons.width, cons.height = cons.width or "100%", cons.height or "100%"
-    cons.container = parent
-    return track(Geyser.Label:new(cons))
+    -- the parent is the SECOND argument: Geyser ignores a container field in the table
+    return track(Geyser.Label:new(cons, parent))
 end
 
 local function box(name, parent)
-    return track(Geyser.Container:new({ name = PREFIX .. name, x = 0, y = 0, width = "100%", height = "100%", container = parent }))
+    return track(Geyser.Container:new({ name = PREFIX .. name, x = 0, y = 0, width = "100%", height = "100%" }, parent))
 end
 
-local function column(name, side)
+local function column(name, side, pad)
     local c = track(Adjustable.Container:new({
         name = PREFIX .. name, x = 0, y = 0, width = 10, height = 10, autoSave = false, autoLoad = false,
     }))
     pcall(c.attachToBorder, c, side)
     pcall(c.setTitle, c, " ")
+    pcall(c.setPadding, c, pad) -- a thin edge the player can still grab to resize
+    for _, part in ipairs({ "minimizeLabel", "exitLabel" }) do
+        local l = c[part]
+        if l then pcall(l.hide, l) end -- the small title buttons only clutter the frame
+    end
     return c
 end
 
 local function build()
-    local leftCol, rightCol = column("leftCol", "left"), column("rightCol", "right")
+    local leftCol, rightCol = column("leftCol", "left", PAD), column("rightCol", "right", PAD)
     S.leftCol, S.rightCol = leftCol, rightCol
     S.leftBg = label("leftBg", leftCol, {})
     S.rightBg = label("rightBg", rightCol, {})
-    S.topBar = column("topBar", "top")
+    S.topBar = column("topBar", "top", 0) -- no padding: 3 x PAD would squeeze the 36 px bar
     S.topLabel = label("top", S.topBar, {})
     S.panels, S.inner = {}, {}
     S.inner.top = box("top.inner", S.topLabel)
@@ -77,7 +88,7 @@ local function place(obj, x, y, w, h)
     obj:resize(w, h)
 end
 
-local function panel(slot, y, w, h)
+local function panel(slot, y, w, h) -- w, h: the Inside size of the column
     local f = FRAME * scale()
     place(S.panels[slot], 0, y, w, h)
     place(S.inner[slot], f, f, math.max(w - 2 * f, 1), math.max(h - 2 * f, 1))
@@ -99,19 +110,21 @@ local function layoutNow(r)
         return
     end
     local colH = math.max(H - r.top - r.bottom, 3 * MIN_PANEL)
+    -- children live in the Inside area: padding on the sides and bottom, twice the padding on top
+    local lw, rw, ih = math.max(r.left - 2 * PAD, 1), math.max(r.right - 2 * PAD, 1), math.max(colH - 3 * PAD, 1)
     S.leftCol:show(); S.rightCol:show()
     place(S.leftCol, 0, r.top, r.left, colH)
-    place(S.leftBg, 0, 0, r.left, colH)
+    place(S.leftBg, 0, 0, lw, ih)
     place(S.rightCol, W - r.right, r.top, r.right, colH)
-    place(S.rightBg, 0, 0, r.right, colH)
-    panel("chat", 0, r.left, colH)
-    local avail = colH - 2 * GAP
+    place(S.rightBg, 0, 0, rw, ih)
+    panel("chat", 0, lw, ih)
+    local avail = ih - 2 * GAP
     local map = math.max(MIN_PANEL, math.floor(avail * 0.45))
     local vit = math.max(MIN_PANEL, math.floor(avail * 0.22))
     local btn = math.max(MIN_PANEL, avail - map - vit)
-    panel("map", 0, r.right, map)
-    panel("vitals", map + GAP, r.right, vit)
-    panel("buttons", map + vit + 2 * GAP, r.right, btn)
+    panel("map", 0, rw, map)
+    panel("vitals", map + GAP, rw, vit)
+    panel("buttons", map + vit + 2 * GAP, rw, btn)
     setBorders(r.top, r.right, r.bottom, r.left)
 end
 
@@ -163,6 +176,8 @@ function L.command(argString, env)
     return true
 end
 
+local function rgb(c) return ("rgb(%d,%d,%d)"):format(c[1], c[2], c[3]) end
+
 local function theming(ctx)
     local t = ctx.theme
     if type(t) == "table" and type(t.imageScale) == "number" and t.imageScale ~= S.scale then
@@ -171,6 +186,12 @@ local function theming(ctx)
     end
     if not S.built then return end
     local function css(obj, role) pcall(obj.setStyleSheet, obj, ctx.css(role)) end
+    if type(t) == "table" and type(t.colors) == "table" then -- the thin edge of each container
+        local frame = ("QLabel{background-color: %s; border: 1px solid %s;}"):format(rgb(t.colors.surface), rgb(t.colors.border))
+        for _, col in ipairs({ S.topBar, S.leftCol, S.rightCol }) do
+            if col and col.adjLabel then pcall(col.adjLabel.setStyleSheet, col.adjLabel, frame) end
+        end
+    end
     css(S.topLabel, "statusbar")
     css(S.leftBg, "window"); css(S.rightBg, "window")
     for _, slot in ipairs(SLOTS) do css(S.panels[slot], "panel") end

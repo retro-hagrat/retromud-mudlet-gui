@@ -115,6 +115,10 @@ local Base = newClass("container")
 
 local function parentBox(self)
     local p = self.parent
+    -- Real Mudlet quirk (seen live): a child whose parent is an Adjustable.Container is positioned
+    -- from the Inside area but sized in percent of the WHOLE container, so it overflows. Parent the
+    -- children to container.Inside instead.
+    if p and p.Inside then return p.Inside:get_x(), p.Inside:get_y(), p:get_width(), p:get_height() end
     if p and p ~= Root then return p:get_x(), p:get_y(), p:get_width(), p:get_height() end
     return 0, 0, F.winW, F.winH
 end
@@ -154,7 +158,7 @@ local function construct(C, cons, parent)
     o.hidden = false
     o.children = {}
     o.clickCallbacks = {}
-    attach(o, parent or cons.container)
+    attach(o, parent) -- like the real Geyser: a container field in the table is ignored (a real bug hid behind it)
     register(o)
     return o
 end
@@ -258,6 +262,10 @@ function Adj:attachToBorder(side)
     self.attached = s
 end
 function Adj:adjustBorder() end
+function Adj:setPadding(p)
+    methodFail(self, "setPadding")
+    self.padding = p
+end
 function Adj:changeMenuStyle(a, b) self.menuStyle = { a, b } end
 function Adj:setTitle(text, color) methodFail(self, "setTitle"); self.title = text; self.titleColor = color end
 function Adj:save() methodFail(self, "save"); F.files["adj:" .. self.name] = { x = self.x, y = self.y, width = self.width, height = self.height }; self.saved = true end
@@ -294,6 +302,17 @@ function Adj.new(C, cons, parent)
     a.minimizeLabel = part(a, "minimizeLabel", { x = -40, y = 0, width = 20, height = 20 })
     a.exitLabel = part(a, "exitLabel", { x = -20, y = 0, width = 20, height = 20 })
     a.title = cons.titleText
+    a.padding = cons.padding or 10
+    -- Inside area: padding on the left, right and bottom, twice the padding on top (measured live)
+    local failOn = F.failOn
+    F.failOn = nil -- the Inside area is part of the Adjustable, not a call the test code makes
+    local inside = construct(Container, { name = a.name .. "InsideContainer", x = 0, y = 0, width = "100%", height = "100%" }, a)
+    F.failOn = failOn
+    inside.get_x = function() return a:get_x() + a.padding end
+    inside.get_y = function() return a:get_y() + 2 * a.padding end
+    inside.get_width = function() return a:get_width() - 2 * a.padding end
+    inside.get_height = function() return a:get_height() - 3 * a.padding end
+    a.Inside = inside
     if cons.autoLoad ~= false then a:load() end
     return a
 end
