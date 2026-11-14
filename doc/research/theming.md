@@ -18,6 +18,8 @@ Can the GUI ship several colour schemes and background images, and can the playe
 | Recolour the text area of the main window | Not possible | Tested. Only the empty space changes |
 | Change the 16 ANSI colours from Lua | Not possible | No function found. No config key found |
 | Ship a theme as a separate package | Likely easy | Parts tested. The whole path is not tested |
+| Recolour the map background and the exit lines | Easy | Tested, seen on screen |
+| Recolour the command line | Works with `setCmdLineStyleSheet` | Tested, seen on screen. We cannot read the old value back |
 | Keep the images of a player after an uninstall | Only outside the package folder | Tested |
 
 ## Results
@@ -58,9 +60,18 @@ The stylesheet `QLabel{border-image: url("<path>"); color: white;}` stretches th
 1. `setBackgroundColor("main", r, g, b, a)` changes only the empty space of the main window. Each piece of game text keeps its own black background. So the text area stays black.
 2. `getConfig()` returns 65 settings. None of them is a colour of the console or an ANSI colour. Some map settings exist, for example `mapStyle` and `mapInfoColor`.
 3. We listed all Lua functions with the words ansi, colour, palette, or theme in their names. No function sets the ANSI palette. The table `color_table` is readable. For example `color_table.ansi_001` holds `128,0,0`. Writing to it would not recolour the screen.
-4. These functions exist but we did not test them: `setMapBackgroundColor`, `setMapRoomExitsColor`, `setRoomBorderColor`, `setCustomEnvColor`, `setCommandBackgroundColor`, `setCommandForegroundColor`, `setBorderColor`, `setAppStyleSheet`, and `setProfileStyleSheet`.
+4. These functions exist but we did not test them: `setRoomBorderColor`, `setCustomEnvColor`, `setBorderColor`, `setAppStyleSheet`, and `setProfileStyleSheet`.
 
-### 6. Package files and uninstall
+### 6. Map colours and command line colours
+
+1. The profile had a map with 43 rooms. We created a `Geyser.Mapper` widget and called `setMapBackgroundColor(20, 40, 90)` and `setMapRoomExitsColor(255, 200, 0)`. The map background turned dark blue, and the lines between the rooms turned gold. The player saw both in screenshots.
+2. `getMapBackgroundColor()` and `getMapRoomExitsColor()` return the current values. Before the test they returned `0 0 0 255` and `192 192 192`. We put back exactly these values after the test.
+3. These map colours belong to the profile. They are not a property of one widget. Any other map widget in the profile changes too.
+4. `setCommandBackgroundColor("main", r, g, b)` did not change the command line in a screenshot that we took right after the call.
+5. `setCmdLineStyleSheet("main", "QPlainTextEdit{background-color: rgb(20,60,20); color: rgb(255,220,0);}")` turned the command line dark green. We did not type text, so we did not see the text colour.
+6. There is no function that reads the colours or the stylesheet of the command line. After a test we cannot restore the exact values of the player. We reset the stylesheet to an empty string, and we set the colours to black and to our best guess of the Mudlet default grey (160, 164). The player can check Preferences.
+
+### 7. Package files and uninstall
 
 We built a small test package with Muddler. It held a script and an image in `src/resources/`.
 
@@ -78,15 +89,16 @@ We built a small test package with Muddler. It held a script and an image in `sr
 5. Themes can be separate packages. We expect that this works like this, but we did not test it: the theme package holds a `theme.lua` file and its images in its own folder. The GUI scans `getPackages()` for names that start with `rmgui-theme-`. It reads the `theme.lua` file from `<profile folder>/<package name>/`. It scans again when it gets the event `sysInstallPackage`. The simpler choice for the first version is to ship the colour schemes inside the main package.
 6. The main text window stays the choice of the player. We cannot recolour it. Each colour scheme can come with a short note that tells the player which Preferences settings match it.
 7. The uninstall code must clear the `rmgui` global. A global stays after an uninstall.
-8. The checks for the map pane colours and the command line colours are still open. We expect them to work, because the functions exist.
+8. Map colours work, and they apply to the whole profile. The GUI must read `getMapBackgroundColor()` and `getMapRoomExitsColor()` when it starts, keep the values, and put them back on uninstall.
+9. The command line can change with `setCmdLineStyleSheet`. We cannot read the old stylesheet, so the GUI must not change the command line unless the player turns this on. The setting must say that an uninstall resets the command line to the Mudlet default.
 
 ## Limits of this research
 
 1. We used one profile, one Mudlet version (5.1.1), and one operating system.
 2. The player checked each visual result in a screenshot. The test images are plain colours that we made up.
-3. We did not test `changeMenuStyle` visually, the map colours, the command line colours, `setAppStyleSheet`, `Geyser.StyleSheet`, or saving and loading the layout of a container.
+3. We did not test `changeMenuStyle` visually, the colour of the command line text, `setAppStyleSheet`, `Geyser.StyleSheet`, or saving and loading the layout of a container.
 4. We did not test a theme package that the GUI scans for.
 
 ## Clean up
 
-We hid the test labels and the container, set the main window background back to black (0, 0, 0), and uninstalled the test package. The temporary files are in the scratch folder of the session and are not part of the repository.
+We hid the test labels, the container, and the map widget. We set the main window background back to black (0, 0, 0), restored the map colours to their exact old values, reset the command line, and uninstalled the test package. The old command line colours were unknown, so the restore uses black and grey (160, 164) as a guess. The temporary files are in the scratch folder of the session and are not part of the repository.

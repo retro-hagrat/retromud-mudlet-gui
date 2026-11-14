@@ -215,7 +215,7 @@ The GUI must be easy to customize, also for players who do not write code. A pla
 
 ### Tested in Mudlet (2026-11-14)
 
-We tested live theme changes in Mudlet 5.1.1. The results and the design consequences are in `doc/research/theming.md`. The main points: a stylesheet or an image can change on a live label, and an image file is read again only when the code calls `setBackgroundImage` again. A `border-image` stylesheet stretches an image and keeps text on top. An `Adjustable.Container` can be restyled through its inner labels. The main text window and the ANSI colours cannot be changed from Lua. An uninstall deletes the whole package folder, and a global variable stays.
+We tested live theme changes in Mudlet 5.1.1. The results and the design consequences are in `doc/research/theming.md`. The main points: a stylesheet or an image can change on a live label, and an image file is read again only when the code calls `setBackgroundImage` again. A `border-image` stylesheet stretches an image and keeps text on top. An `Adjustable.Container` can be restyled through its inner labels. Map colours (`setMapBackgroundColor`, `setMapRoomExitsColor`) and the command line (`setCmdLineStyleSheet`) can change. The main text window and the ANSI colours cannot be changed from Lua. An uninstall deletes the whole package folder, and a global variable stays.
 
 ### Verified against the Mudlet manual (2026-11-14)
 
