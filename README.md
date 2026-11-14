@@ -28,3 +28,7 @@ Needs Java and [Muddler](https://github.com/demonnic/muddler/releases) (`muddle`
 
 Skeleton: a top status bar that shows the current room (from the mapper) and tears down cleanly on uninstall.
 Next: prompt-parsed vitals, chat miniconsole, map container, button bar.
+
+## License
+
+[MIT](LICENSE). The pixel art in `src/resources/themes/` was generated with Runware for this project.
