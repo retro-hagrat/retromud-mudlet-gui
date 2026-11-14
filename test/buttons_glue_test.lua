@@ -72,6 +72,7 @@ calls = {}
 L("mapToggle"):fireClick(); rmap.mapping = true; L("mapToggle"):fireClick()
 eq(table.concat(calls, ","), "start,stop", "toggle via isMapping")
 eq(expanded(), "", "no alias with api")
+eq(L("mapToggle").text, "map off", "api that never raises an event: label read back from isMapping")
 F.fire("rmap.onMapping", true)
 eq(L("mapToggle").text, "map on", "event on")
 eq(L("mapToggle").textColor, "col-button", "event redraw colour")
@@ -83,6 +84,10 @@ rmap = nil
 L("where"):fireClick(); L("scan"):fireClick(); L("undo"):fireClick()
 L("mapToggle"):fireClick(); L("mapToggle"):fireClick()
 eq(expanded(), "rmap where|rmap scan|rmap undo|rmap start|rmap stop", "alias fallback, remembered toggle")
+eq(L("mapToggle").text, "map off", "label back to off after the second click without api")
+L("mapToggle"):fireClick()
+eq(L("mapToggle").text, "map on", "label follows the click without api (no event needed)")
+L("mapToggle"):fireClick()
 rmap = {}
 F.expanded = {}
 L("where"):fireClick()

@@ -72,9 +72,10 @@ eq(chat:get_height(), 904 - 36 - 12, "chat fills the Inside area of the column (
 eq(chatIn:get_x() - chat:get_x(), 16, "inner inset 16")
 eq(chatIn:get_width(), r.left - 8 - 32, "inner width: column less 2 x padding less 2 x frame")
 local map, vit, btn = F.objects["rmgui.layout.map"], F.objects["rmgui.layout.vitals"], F.objects["rmgui.layout.buttons"]
-eq(vit:get_y() - (map:get_y() + map:get_height()), 4, "gap map/vitals")
-eq(btn:get_y() - (vit:get_y() + vit:get_height()), 4, "gap vitals/buttons")
-eq(btn:get_y() + btn:get_height() <= 904, true, "buttons within window")
+eq(btn:get_y() - (map:get_y() + map:get_height()), 4, "gap map/buttons (buttons sit under the map)")
+eq(vit:get_y() - (btn:get_y() + btn:get_height()), 4, "gap buttons/vitals")
+eq(btn:get_height() <= 48, true, "button row is slim")
+eq(vit:get_y() + vit:get_height() <= 904, true, "vitals within window")
 local top = L.get("top")
 eq(top:get_x() - F.objects["rmgui.layout.top"]:get_x(), 16, "top inset x")
 eq(top:get_y() - F.objects["rmgui.layout.top"]:get_y(), 8, "top inset y")

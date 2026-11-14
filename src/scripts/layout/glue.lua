@@ -12,6 +12,7 @@ local L = rmgui.layout
 local PREFIX = "rmgui.layout."
 local PAD = 4 -- Adjustable padding in pixels
 local GAP, FRAME, MIN_PANEL = 4, 16, 48
+local BUTTONS_H = 40 -- height of the button row
 local PICKER_W = 144 -- right end of the status bar, reserved for the theme picker button
 local SLOTS = { "chat", "map", "vitals", "buttons" }
 local SIDES = { "Top", "Right", "Bottom", "Left" }
@@ -123,12 +124,12 @@ local function layoutNow(r)
     place(S.rightBg, 0, 0, rw, ih)
     panel("chat", 0, lw, ih)
     local avail = ih - 2 * GAP
-    local map = math.max(MIN_PANEL, math.floor(avail * 0.45))
-    local vit = math.max(MIN_PANEL, math.floor(avail * 0.22))
-    local btn = math.max(MIN_PANEL, avail - map - vit)
+    local map = math.max(MIN_PANEL, math.floor(avail * 0.5))
+    local btn = math.floor(BUTTONS_H * k) -- one slim row of buttons right under the map
+    local vit = math.max(MIN_PANEL, avail - map - btn)
     panel("map", 0, rw, map)
-    panel("vitals", map + GAP, rw, vit)
-    panel("buttons", map + vit + 2 * GAP, rw, btn)
+    panel("buttons", map + GAP, rw, btn)
+    panel("vitals", map + btn + 2 * GAP, rw, vit)
     setBorders(r.top, r.right, r.bottom, r.left)
 end
 

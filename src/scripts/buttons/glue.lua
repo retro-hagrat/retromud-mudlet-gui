@@ -9,7 +9,7 @@ local prevEnv = B.env_
 if B.teardown then pcall(B.teardown) end
 local PREFIX = "rmgui.buttons."
 local ORDER = { "where", "scan", "undo", "mapToggle" }
-local CELL = { where = { 0, 0 }, scan = { 50, 0 }, undo = { 0, 50 }, mapToggle = { 50, 50 } }
+local CELL = { where = 0, scan = 25, undo = 50, mapToggle = 75 } -- one row, a quarter each
 
 local env, labels, texts, ids, ctx, mapping, built
 
@@ -69,9 +69,12 @@ local function act(name)
         local verb = isOn and "stop" or "start"
         if a and type(a[verb]) == "function" then
             callApi(a[verb])
+            local ok2, v2 = pcall(a.isMapping) -- the mapper may not raise rmap.onMapping: read the state back
+            if ok2 and type(v2) == "boolean" then mapping = v2; setText("mapToggle", mapping and "map on" or "map off") end
         else
             pcall(env.expandAlias, "rmap " .. verb)
             mapping = not isOn -- no api: remembered state is all we have
+            setText("mapToggle", mapping and "map on" or "map off")
         end
         return
     end
@@ -87,7 +90,7 @@ local function build()
     for _, n in ipairs(ORDER) do
         local ok2, l = pcall(function()
             return Geyser.Label:new({
-                name = PREFIX .. n, x = CELL[n][1] .. "%", y = CELL[n][2] .. "%", width = "50%", height = "50%",
+                name = PREFIX .. n, x = CELL[n] .. "%", y = 0, width = "25%", height = "100%",
             }, slot)
         end)
         if ok2 and l then
