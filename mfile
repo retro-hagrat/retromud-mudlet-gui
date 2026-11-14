@@ -1,0 +1,8 @@
+{
+  "package": "retromud-gui",
+  "title": "RetroMUD GUI",
+  "description": "Geyser GUI for RetroMUD (www.retromud.org): status bar and mapper host.",
+  "author": "retromud contributors",
+  "version": "0.0.1",
+  "dependencies": "retromud"
+}
