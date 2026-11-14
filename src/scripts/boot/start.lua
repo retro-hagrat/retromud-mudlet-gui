@@ -27,12 +27,29 @@ local function run(fn, args)
     elseif save then env.saveSettings() end
 end
 
+-- same look as "rmap help": a title, then one cyan command and its text per line
+local HELP = {
+    { "rgui help", "show this text" },
+    { "rgui theme", "list the themes and show the active one" },
+    { "rgui theme <name>", "switch theme" },
+    { "rgui theme reload", "read your theme files again" },
+    { "rgui layout <mode>", "wide, compact or auto" },
+    { "wt", "list the world transport aliases (wt shaft, ship, key, pod, grove, gate)" },
+}
+function rmgui.boot.help()
+    local lines = { "<cyan>[rmgui]<reset> RetroMUD GUI" }
+    for _, c in ipairs(HELP) do lines[#lines + 1] = ("  <cyan>%-20s<reset>%s"):format(c[1], c[2]) end
+    env.cecho(table.concat(lines, "\n") .. "\n")
+end
+
 -- registered last: runs after every module built its elements, stops first
 rmgui.core.register("boot", {
     init = function()
         killAliases()
         aliasIds[1] = env.alias("^rgui theme(.*)$", function() run(rmgui.theme.command, matches[2]) end)
         aliasIds[2] = env.alias("^rgui layout(.*)$", function() run(rmgui.layout.command, matches[2]) end)
+        aliasIds[3] = env.alias("^rgui$", function() rmgui.boot.help() end)
+        aliasIds[4] = env.alias("^rgui help$", function() rmgui.boot.help() end)
         rmgui.theme.apply(env.settings.theme, env, env.settings)
     end,
     teardown = function()

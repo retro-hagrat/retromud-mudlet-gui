@@ -38,11 +38,17 @@ setMapBackgroundColor(1, 2, 3); setMapRoomExitsColor(4, 5, 6)
 load()
 local st = rmgui.core.state()
 eq(st.started, true, "started at load"); eq(#st.failed, 0, "no failed module"); eq(st.order[#st.order], "boot", "boot is last")
-eq(F.counts().aliases, 2, "two aliases"); eq(rmgui.theme.state.active, "perdow", "default theme applied")
+eq(F.counts().aliases, 4, "four aliases"); eq(rmgui.theme.state.active, "perdow", "default theme applied")
 eq(names() > 5, true, "objects built"); eq(F.objects["rmgui.chat.console.all"] ~= nil, true, "chat console built without math.tointeger")
 
 F.sendAlias("rgui theme raji"); eq(rmgui.theme.state.active, "raji", "theme alias"); eq(rmgui.boot.env.settings.theme, "raji", "theme setting changed")
 eq(F.files[F.home .. "/retromud-gui-settings.lua"].theme, "raji", "theme saved")
+local function lines(t) local n = 0 for _ in t:gmatch("[^\n]+") do n = n + 1 end return n end
+F.output = {}; F.sendAlias("rgui")
+eq(F.output[1]:find("^%[rmgui%] RetroMUD GUI") ~= nil, true, "rgui alone shows the help title")
+eq(lines(F.output[1]), 7, "help has a title and six commands")
+eq(F.output[1]:find("rgui help", 1, true) ~= nil, true, "help lists rgui help")
+F.output = {}; F.sendAlias("rgui help"); eq(lines(F.output[1] or ""), 7, "rgui help shows the help too")
 F.sendAlias("rgui layout compact"); eq(rmgui.boot.env.settings.layout.mode, "compact", "layout alias")
 F.fire("sysLoadEvent"); eq(rmgui.core.state().started, true, "later sysLoadEvent harmless")
 

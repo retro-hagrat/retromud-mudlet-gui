@@ -49,6 +49,20 @@ Known limits:
 - The map toggle and the `where`, `scan` and `undo` buttons use the commands of the mapper.
 - Not every screen has been checked by eye yet.
 
+## Commands
+
+The package adds these commands. Type them in the Mudlet command line.
+
+| Command | What it does |
+|---|---|
+| `rgui` or `rgui help` | Shows this list of commands in Mudlet. |
+| `rgui theme` | Lists the themes and shows the active one. |
+| `rgui theme <name>` | Switches to a theme. |
+| `rgui theme reload` | Reads your theme files again and applies the active theme. |
+| `rgui layout wide\|compact\|auto` | Chooses the layout of the screen. |
+| `wt` | Lists the world transport aliases. |
+| `wt shaft <name>`, `wt ship <name>`, `wt key <name>`, `wt pod <name>`, `wt grove <name>`, `wt gate <name>` | Walks to a world exit. Each walk works only from one start room. See "World transport". |
+
 ## Themes
 
 A theme sets the colors, the font sizes, and the pictures of the GUI. To change the theme, click the theme button at the top right of the status bar and pick a planet. You can also type these commands:

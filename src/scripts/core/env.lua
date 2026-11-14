@@ -16,6 +16,8 @@ function rmgui.core.makeEnv()
         cecho(("<%s>[rmgui] %s\n"):format(COLORS[level] or COLORS.info, tostring(message)))
     end
 
+    function env.cecho(text) return cecho(text) end -- text with cecho colour tags
+
     function env.exists(path)
         local f = io.open(path, "r")
         if f then f:close() end
