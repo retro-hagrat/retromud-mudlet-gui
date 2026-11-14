@@ -132,6 +132,36 @@ We read the mapper source on 2026-11-14. The commands `start`, `stop`, `where`, 
 4. The parser rejects lines that look like chat, rejects impossible values, and ignores a line that it already handled.
 5. The parser is pure Lua, with no Geyser calls, so that we can test it offline.
 
+## Namespaces and packages
+
+### Packages
+
+1. The project has two packages. `retromud` is the mapper. `retromud-gui` is the GUI. We keep the name `retromud` for the mapper, because a rename breaks existing installs.
+2. The GUI lists `retromud` in `dependencies`. The two packages talk only through events and through `rm.api`.
+3. We do not make a third package for shared code. The Mudlet maintainers say that a little duplicated code is not a problem. If both packages need the same small helper, each package keeps its own copy.
+
+### Global names
+
+1. All scripts in a Mudlet profile share one Lua environment. So each package owns exactly one global table. The mapper owns `rm`. The GUI owns `rmgui`. A package must not add any other global name.
+2. The GUI never reads or changes `rm`, except through `rm.api`. The mapper never reads or changes `rmgui`.
+3. Each module of the GUI is a sub-table of `rmgui`. Examples are `rmgui.core`, `rmgui.layout`, `rmgui.vitals`, `rmgui.chat`, `rmgui.theme`, and `rmgui.settings`. A part of a module is a sub-table of the module. The chat engine is `rmgui.chat.engine`. Its data is `rmgui.chat.rules`.
+4. Events use the same prefixes. The mapper raises events that start with `rm.`. The GUI raises events that start with `rmgui.`.
+5. Geyser objects, triggers, and timers have names that start with `rmgui.`. Mudlet reuses an object that has the same name, so a name must be unique.
+6. A script that is not part of a package must not use the names `rm` or `rmgui`. We cannot enforce this. We can only choose names that are unlikely to clash.
+
+### Files and modules
+
+1. Each module is a folder in `src/scripts/`. This layout works with Muddler. Each folder has a `scripts.json` that lists its scripts in load order.
+2. A module splits into pure files and glue files. A pure file has no Mudlet call and no Geyser call. Plain `lua` can run its tests. `rules.lua` and `engine.lua` of the chat module are pure files. A glue file creates triggers, Geyser objects, and event handlers. We test glue files by hand in Mudlet.
+3. Each module exposes two functions: `init()` and `teardown()`. The function `init()` creates what the module needs. The function `teardown()` removes all of it. This includes Geyser objects, triggers, timers, event handlers, and border changes.
+4. The `core` module calls `init()` of each module in a fixed order when the profile loads. It calls `teardown()` in the reverse order when the package is uninstalled. A new module needs only a new entry in the list of `core`.
+5. The `core` folder is first in `src/scripts/scripts.json`, so that the `rmgui` table exists before any other module runs. Each file starts with `rmgui = rmgui or {}`, so that the tests can load a single file. We did not yet verify in Mudlet that scripts run in the order of the file.
+
+### Limits
+
+1. Another package that uses the global names `rm` or `rmgui` clashes with ours. We cannot prevent this.
+2. The names `rm` and `rmgui` are short. A rename is cheap now and costly later. We keep them for now.
+
 ## Modules
 
 Each module is a folder in `src/scripts/`. All state lives in the table `rmgui`.
@@ -141,11 +171,11 @@ Each module is a folder in `src/scripts/`. All state lives in the table `rmgui`.
 | `core` | The `rmgui` table, install and uninstall handlers, saved settings |
 | `layout` | Containers and borders. It saves the old border sizes and restores them on uninstall |
 | `vitals` | The prompt parser and the vitals gauges |
-| `chat` | The chat miniconsole |
+| `chat` | The chat engine (pure Lua, done) and the chat panel (not started). See `doc/spec/chat.md` |
 | `map-host` | Finds `rm.map` and moves it into the layout |
 | `buttons` | The button bar |
 
-Only `core` exists today, in `src/scripts/core/gui.lua`. It contains the first status bar. We will split it when we add the other modules.
+Two modules exist today. `core` is in `src/scripts/core/gui.lua`. It contains the first status bar, and it does not yet follow the `init()` and `teardown()` pattern. `chat` holds the pure rule engine in `src/scripts/chat/`. We will split `core` when we add the other modules.
 
 ## Install and uninstall
 
