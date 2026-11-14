@@ -13,7 +13,7 @@ The GUI frames the main text window with a status bar and two side columns. The 
 2. The border functions (`setBorderTop`, `setBorderLeft`, `setBorderRight`, `setBorderBottom`) reserve space around the main text window. Our labels fill that space.
 3. The command line is a Mudlet widget at the bottom. The player wants nothing extra on it. So the frame does not touch it.
 4. An `Adjustable.Container` can attach to a border and adjust the border by itself. The player can move and resize it. We can restyle its frame and title after it exists.
-5. Pixel art images need a whole-number scale. At `imageScale` 2, a `panel` image has a 16 px frame and a `statusbar` image has an 8 px frame at the top and the bottom.
+5. Pixel art images need a whole-number scale. At the default `imageScale` of 1, a `panel` image has a 16 px frame and a `statusbar` image has an 8 px frame at the top and the bottom.
 
 ## 3. Terms
 
@@ -62,13 +62,13 @@ All sizes are in pixels. The columns and the status bar are `Adjustable.Containe
 
 | Part | Default | Limits |
 |---|---|---|
-| Status bar height | 36 | 32 to 48. The smallest height is 4 slice pixels at the top and the bottom, times the scale, plus text height |
+| Status bar height | 36 | 32 to 48. The smallest height is 8 slice pixels at the top and the bottom, times the scale, plus text height |
 | Chat column width | 22% of the window width | 260 to 400 |
 | Side column width | 26% of the window width | 300 to 440 |
 | Gap between panels | 4 | Fixed |
 | Bottom border | 0 | The command line stays clean |
 
-A panel must be at least 3 times the frame of its image in each direction, so that the middle repeats at least once. At scale 2, that is 48 px for `panel`.
+A panel must be at least 3 times the frame of its image in each direction, so that the middle repeats at least once. At the default scale of 1, that is 48 px for `panel`.
 
 ## 7. Requirements
 

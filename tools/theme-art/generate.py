@@ -16,9 +16,9 @@ from PIL import Image
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
 OUT = os.path.join(ROOT, "src", "resources", "themes")
 RAW = os.path.join(ROOT, "tmp", "theme-art-raw")
-COLORS = 12  # palette size after cleanup
+COLORS = 16  # palette size after cleanup
 
-STYLE = ("8-bit pixel art game UI element, flat colors, hard pixel edges, no anti-aliasing, no gradients, "
+STYLE = ("retro pixel art, 8-bit pixel art style, chunky square pixels, classic 1980s video game UI element, flat colors, hard pixel edges, no anti-aliasing, no gradients, "
          "no blur, no text, no letters, no characters, no 3D perspective, limited palette of at most 8 "
          "colors, perfectly symmetrical, centered, plain front view, retro 1980s computer RPG interface style")
 NEGATIVE = ("smooth, blurry, anti-aliased, photo, realistic, 3d, perspective, text, letters, watermark, "
@@ -34,22 +34,23 @@ MOTIF = {
 }
 # role: (target w, h), (generated w, h: multiples of 64), mirror axes, text colour used on it, prompt
 ROLES = {
-    "window": ((64, 64), (512, 512), "xy", "text",
-        "a seamless tileable texture, 64x64 pixels, subtle repeating pattern of the theme, very low contrast so text stays readable on it"),
-    "panel": ((32, 32), (512, 512), "xy", "text",
-        "a square frame, 32x32 pixels, 8 pixel decorated corners and 8 pixel repeatable straight edges, a plain flat dark center area with no detail"),
-    "statusbar": ((32, 16), (512, 256), "xy", "text",
-        "a wide bar, 32x16 pixels, 8 pixel end caps on the left and the right, a plain flat center strip, a thin border line on the top and the bottom"),
-    "button": ((24, 24), (512, 512), "x", "text",
-        "a small square button frame, 24x24 pixels, 6 pixel corners, slightly raised look with a light top edge and a darker bottom edge, plain flat center"),
-    "tab": ((24, 16), (384, 256), "x", "textMuted",
-        "an inactive tab, 24x16 pixels, 4 pixel corners, muted colors, plain flat center"),
-    "tabActive": ((24, 16), (384, 256), "x", "text",
-        "an active tab, 24x16 pixels, 4 pixel corners, bright accent color on the top edge, slightly lighter plain flat center"),
+    "window": ((128, 128), (512, 512), "xy", "text",
+        "a seamless tileable texture, 128x128 pixels, subtle repeating pattern of the theme, very low contrast so text stays readable on it"),
+    "panel": ((64, 64), (512, 512), "xy", "text",
+        "a square picture frame, 64x64 pixels, 16 pixel decorated corners and 16 pixel repeatable straight edges, a plain flat near-black center area with no detail"),
+    "statusbar": ((64, 32), (512, 256), "xy", "text",
+        "a wide bar, 64x32 pixels, 16 pixel end caps on the left and the right, a plain flat dark center strip, a thin border line on the top and the bottom"),
+    "button": ((48, 48), (384, 384), "x", "text",
+        "a small square button frame, 48x48 pixels, 12 pixel corners, slightly raised look with a light top edge and a darker bottom edge, plain flat center"),
+    "tab": ((48, 32), (384, 256), "x", "textMuted",
+        "an inactive tab, 48x32 pixels, 8 pixel corners, muted colors, plain flat center"),
+    "tabActive": ((48, 32), (384, 256), "x", "text",
+        "an active tab, 48x32 pixels, 8 pixel corners, bright accent color on the top edge, slightly lighter plain flat center"),
 }
-SLICE = {"window": None, "panel": 8, "statusbar": 4, "button": 6, "tab": 4, "tabActive": 4}
-# Qt draws a tile at its own size, so the window tile is saved pre-scaled (imageScale 2).
-PRESCALE = {"window": 2}
+# Slices (top, right, bottom, left) in art pixels. Must match NINE in src/scripts/theme/logic.lua.
+# The window role is a tile at its own size, so it has no slices.
+SLICE = {"window": None, "panel": (16, 16, 16, 16), "statusbar": (8, 16, 8, 16),
+         "button": (12, 12, 12, 12), "tab": (8, 8, 8, 8), "tabActive": (8, 8, 8, 8)}
 
 
 def load_palettes():
@@ -87,8 +88,15 @@ def contrast(a, b):
     return (x + 0.05) / (y + 0.05)
 
 
-def cleanup(img, role):
-    """Shrink to the exact pixel size, cut the palette, mirror so the corners match."""
+# The middle of a frame is where text sits. The model ignores "plain center", so the
+# script paints it with a flat colour of the theme. The window tile is blended toward the surface.
+FILL = {"panel": "surface", "statusbar": "surfaceAlt", "button": "surfaceAlt", "tab": "surfaceAlt", "tabActive": "surface"}
+WINDOW_BLEND = 0.55  # share of the surface colour mixed into the window tile
+
+
+def cleanup(img, role, pal):
+    """Shrink to the exact pixel size, cut the palette, mirror so the corners match,
+    then make the text area plain."""
     (w, h), _, axes, _, _ = ROLES[role]
     img = img.convert("RGB")
     # window is built from one quadrant and mirrored, so it tiles without a seam
@@ -105,15 +113,30 @@ def cleanup(img, role):
         full.paste(img, (0, 0)); full.paste(img.transpose(Image.FLIP_LEFT_RIGHT), (qw, 0))
         full.paste(img.transpose(Image.FLIP_TOP_BOTTOM), (0, qh)); full.paste(img.transpose(Image.ROTATE_180), (qw, qh))
         img = full
-    k = PRESCALE.get(role, 1)
-    return img.resize((img.width * k, img.height * k), Image.NEAREST) if k > 1 else img
+    if role == "window":
+        sf = pal["surface"]
+        img = Image.eval(img, lambda v: v)  # copy
+        px = img.load()
+        for y in range(img.height):
+            for x in range(img.width):
+                px[x, y] = tuple(int(px[x, y][i] * (1 - WINDOW_BLEND) + sf[i] * WINDOW_BLEND) for i in range(3))
+    else:
+        t, r, b, l = SLICE[role]
+        px = img.load()
+        for y in range(t, img.height - b):
+            for x in range(l, img.width - r): px[x, y] = pal[FILL[role]]
+        if role == "tabActive":  # bright accent line on the top edge
+            for y in range(2):
+                for x in range(img.width): px[x, y] = pal["accent"]
+    return img
 
 
 def worst_contrast(img, role, theme_pal):
     """Lowest contrast between the text colour and the pixels where text can sit."""
     s = SLICE[role]
+    if s is None: return 99.0  # the window tile never carries text, panels sit on it
     w, h = img.size
-    box = (0, 0, w, h) if s is None else (s, min(s, h // 4), w - s, h - min(s, h // 4))
+    box = (s[3], s[0], w - s[1], h - s[2])
     text = theme_pal[ROLES[role][3]]
     return min(contrast(text, img.getpixel((x, y))) for x in range(box[0], box[2]) for y in range(box[1], box[3]))
 
@@ -136,13 +159,16 @@ def selftest():
     for role, ((w, h), (gw, gh), axes, _, _) in ROLES.items():
         src = Image.new("RGB", (gw, gh))
         src.putdata([(rnd.randrange(256), rnd.randrange(256), rnd.randrange(256)) for _ in range(gw * gh)])
-        out = cleanup(src, role)
-        k = PRESCALE.get(role, 1)
-        w, h = w * k, h * k
+        out = cleanup(src, role, load_palettes()["perdow"])
         assert out.size == (w, h), (role, out.size)
-        assert len(set(out.getdata())) <= COLORS, (role, "too many colours")
+        if role != "window": assert len(set(out.getdata())) <= COLORS + 2, (role, "too many colours")
+        if role == "tabActive":  # the top rows are the accent line, so skip them for the x check only
+            assert out.getpixel((w // 2, 0)) == load_palettes()["perdow"]["accent"], "accent line"
         if "x" in axes: assert all(out.getpixel((x, y)) == out.getpixel((w - 1 - x, y)) for x in range(w) for y in range(h)), (role, "x symmetry")
         if "y" in axes: assert all(out.getpixel((x, y)) == out.getpixel((x, h - 1 - y)) for x in range(w) for y in range(h)), (role, "y symmetry")
+        if role != "window":  # the text area is one flat colour (THEME-020 by construction)
+            t, r, b, l = SLICE[role]; fill = load_palettes()["perdow"][FILL[role]]
+            assert all(out.getpixel((x, y)) == fill for x in range(l, w - r) for y in range(max(t, 2), h - b)), (role, "plain centre")
         if role == "window":  # edges match, so it tiles
             assert all(out.getpixel((0, y)) == out.getpixel((w - 1, y)) for y in range(h)), "tile seam x"
             assert all(out.getpixel((x, 0)) == out.getpixel((x, h - 1)) for x in range(w)), "tile seam y"
@@ -157,6 +183,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--theme"); ap.add_argument("--role"); ap.add_argument("--seed", type=int)
     ap.add_argument("--dry-run", action="store_true"); ap.add_argument("--selftest", action="store_true")
+    ap.add_argument("--from-raw", action="store_true", help="redo the cleanup from tmp/theme-art-raw, no API call")
     a = ap.parse_args()
     if a.selftest: return selftest()
     pal = load_palettes()
@@ -170,6 +197,15 @@ def main():
         for t in themes:
             for r in roles: print(f"[{t}/{r}] {ROLES[r][1]}\n  {prompt(t, r, pal)}\n")
         return
+    if a.from_raw:
+        for t in themes:
+            os.makedirs(os.path.join(OUT, t), exist_ok=True)
+            for r in roles:
+                img = cleanup(Image.open(os.path.join(RAW, f"{t}-{r}.png")), r, pal[t])
+                img.save(os.path.join(OUT, t, r + ".png"))
+                c = worst_contrast(img, r, pal[t])
+                print(f"{t}/{r}: wrote {img.size[0]}x{img.size[1]}, worst text contrast {c:.1f}" + ("  WARN below 4.5" if c < 4.5 else ""))
+        return
     key = os.environ.get("RUNWARE_API_KEY") or sys.exit("RUNWARE_API_KEY must be set")
     model = os.environ.get("RUNWARE_MODEL", "runware:100@1")
     os.makedirs(RAW, exist_ok=True)
@@ -182,7 +218,7 @@ def main():
         for r, task in zip(roles, tasks):
             data = download(urls[task["taskUUID"]])
             open(os.path.join(RAW, f"{t}-{r}.png"), "wb").write(data)
-            img = cleanup(Image.open(io.BytesIO(data)), r)
+            img = cleanup(Image.open(io.BytesIO(data)), r, pal[t])
             img.save(os.path.join(OUT, t, r + ".png"))
             c = worst_contrast(img, r, pal[t])
             print(f"{t}/{r}: wrote {img.size[0]}x{img.size[1]}, worst text contrast {c:.1f}" + ("  WARN below 4.5" if c < 4.5 else ""))

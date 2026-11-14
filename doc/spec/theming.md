@@ -87,7 +87,7 @@ A theme has these groups of keys. The names are a first proposal.
    - `map`: a table with `background` and `exits`.
 3. `fonts`: `family` (can be empty to use the default), `size` for normal text, and `sizeSmall`.
 4. `images`: a table that maps a role to a file name, or to `false` for no image. The roles are `window`, `statusbar`, `panel`, `button`, `tab`, and `tabActive`. Section 6 describes how an image is drawn.
-5. `imageScale`: a whole number of 1 or more, 2 by default. It is the factor by which an image is shown larger than its pixels. It keeps pixel art sharp.
+5. `imageScale`: a whole number of 1 or more, 1 by default. It is the factor by which an image is shown larger than its pixels. It keeps pixel art sharp.
 6. `imageOpacity` is not in the first version. Qt stylesheets have no opacity, and the research did not find one for a label. A player who wants a softer image edits the image. A later version can put a half-transparent layer over the image.
 7. `cmdline`: a table with `background` and `text`. The module uses it only when the player turns it on.
 
@@ -97,26 +97,30 @@ Each role gets its stylesheet from a pure function. The function takes the theme
 
 The player puts PNG files with these names in the theme folder. The presets ship the same files in `themes/<theme name>/`. The names are a first proposal.
 
-The art is pixel art. A plain stretch smears it, which we saw in Mudlet. So every image except the window tile is a nine-slice image. The four corners keep their pixels and are shown at `imageScale` times their size. The edges and the middle repeat. The stylesheet is `border-image: url("<file>") <slices> round round;` with a `border-width` of the slices times `imageScale`.
+The art is pixel art. A plain stretch smears it, which we saw in Mudlet. So every image except the window tile is a nine-slice image. The four corners keep their pixels and are shown at `imageScale` times their size. The edges and the middle repeat. The stylesheet is `border-image: url("<file>") <slices> repeat repeat;` with a `border-width` of the slices times `imageScale`. We use `repeat` and not `round`, because `round` scales the tiles with smoothing and draws dark seam lines across a panel (seen in Mudlet).
 
-| File | Role | Art size (px) | Slice (px) | Drawn as |
+| File | Role | Art size (px) | Slice (px): top, right, bottom, left | Drawn as |
 |---|---|---|---|---|
-| `window.png` | The sidebar background | 128 x 128 | none | A tile at its own size. The art is 64 x 64 and is saved at 2 times size, because Qt cannot scale a tile |
-| `panel.png` | The panels | 32 x 32 | 8 on all sides | Nine-slice |
-| `statusbar.png` | The status bar | 32 x 16 | 4 top and bottom, 8 left and right | Nine-slice |
-| `button.png` | The buttons | 24 x 24 | 6 on all sides | Nine-slice |
-| `tab.png` | An inactive tab | 24 x 16 | 4 on all sides | Nine-slice |
-| `tabActive.png` | The active tab | 24 x 16 | 4 on all sides | Nine-slice |
+| `window.png` | The column background | 128 x 128 | none | A tile at its own size. Qt cannot scale a tile |
+| `panel.png` | The panels | 64 x 64 | 16, 16, 16, 16 | Nine-slice |
+| `statusbar.png` | The status bar | 64 x 32 | 8, 16, 8, 16 | Nine-slice |
+| `button.png` | The buttons | 48 x 48 | 12, 12, 12, 12 | Nine-slice |
+| `tab.png` | An inactive tab | 48 x 32 | 8, 8, 8, 8 | Nine-slice |
+| `tabActive.png` | The active tab | 48 x 32 | 8, 8, 8, 8 | Nine-slice |
+
+At the default `imageScale` of 1, the frame of a panel is 16 px on the screen. A frame at the size of 32 art pixels was too small: the test image turned into a blur, so the art uses four times the pixels.
 
 Rules for the art:
 
 1. The four corners must match. The generator mirrors the image to make sure of this.
-2. The middle must be plain and close to the base colours of the preset, because text sits right on it.
-3. The palette has at most 12 colours.
-4. The window tile must have no seam. The generator builds it from one mirrored quadrant.
-5. A button with an image has no hover look. A later version can ship a second image for it.
+2. The text area, which is the middle inside the slices, must be one flat colour of the theme. The generator paints it. The model does not keep a middle plain, even when the prompt asks for it.
+3. The window tile is mixed with the `surface` colour of the theme, so that it stays quiet behind the panels.
+4. The palette has at most 16 colours.
+5. The window tile must have no seam. The generator builds it from one mirrored quadrant.
+6. The active tab has a 2 pixel line of the `accent` colour on its top edge.
+7. A button with an image has no hover look. A later version can ship a second image for it.
 
-THEME-020. Every image that ships with a preset must pass a text contrast check. The ratio between the text colour of its role and every pixel of the area where text can sit must be at least 4.5 to 1. The generator makes this check (section 7a). The module does not check the images of a player.
+THEME-020. Every image that ships with a preset and carries text (every role except `window`) must have a flat text area that is the `surface` or `surfaceAlt` colour of its theme. Then the text contrast of section THEME-013 holds by construction. The generator reports the lowest text contrast for each image as a check. The module does not check the images of a player.
 
 ## 7. The apply function
 
@@ -126,7 +130,7 @@ The function `rmgui.theme.apply(name)` does these steps in order:
 2. Merge the override file over the preset (THEME-010).
 3. Check the merged theme. A key that is missing gets the value of the default theme (`perdow`). A value of the wrong type is replaced in the same way, and the module shows one message.
 4. Find the image for each role. The theme folder comes first. Then comes the folder of the preset. If no file exists, the role has no image (THEME-008).
-5. Call the function of each registered element, inside `pcall` (THEME-007). The function receives the merged theme and the image paths. It calls the style setters again (THEME-005).
+5. Call the function of each registered element, inside `pcall` (THEME-007). The function receives the merged theme and the image paths. It calls the style setters again (THEME-005). A label ignores the `color:` of its stylesheet for text that it shows with `echo`. So the element must pass the colour from `rmgui.theme.textColor(role, theme)` to `label:echo(text, colour)`.
 6. If map theming is on, save the old map colours when this is the first apply, and set the map colours (THEME-015).
 7. If the player turned on the command line, set its stylesheet (THEME-016).
 8. Save the name of the theme in the settings file (THEME-011).
@@ -140,8 +144,11 @@ The script `tools/theme-art/generate.py` makes the images with the Runware image
 
 1. It builds a prompt from a shared pixel-art style, the hex colours of the preset (read from `presets.lua`), the motif of the planet, and the role text from section 6.
 2. It asks Runware for the image at a large size (a multiple of 64) and keeps the raw file in `tmp/theme-art-raw/`.
-3. It shrinks the image to the art size with box averaging, cuts the palette to 12 colours, and mirrors it so that the corners match. It builds the window tile from one quadrant and saves it at 2 times size.
-4. It reports the lowest text contrast (THEME-020) and warns below 4.5 to 1.
+3. It shrinks the image to the art size with box averaging, cuts the palette to 16 colours, and mirrors it so that the corners match. It builds the window tile from one quadrant.
+4. It paints the text area of each frame with a flat theme colour, adds the accent line to the active tab, and mixes the window tile with the `surface` colour.
+5. It reports the lowest text contrast (THEME-020) and warns below 4.5 to 1.
+
+The option `--from-raw` repeats steps 3 to 5 from the saved downloads and needs no API call. The script runs in about 30 seconds for all 36 images.
 
 The command `generate.py --dry-run` prints the prompts, and `--selftest` checks the cleanup without the network. The options `--theme`, `--role`, and `--seed` make one image again.
 
@@ -181,9 +188,9 @@ A theme can be a separate package. The package holds a `theme.lua` file and its 
 4. Do spaces in the path of an image work in `border-image`? We did not test this.
 5. Does `changeMenuStyle("light")` of an `Adjustable.Container` match the `welstar` preset? We did not look at the result.
 6. Is `rgui` a good alias prefix?
-7. Does the nine-slice stylesheet look right at `imageScale` 2 in Mudlet? The earlier test showed crisp corners, and the test of the stylesheet that the code now builds is not confirmed yet.
-8. Does `background-repeat: repeat` tile the window image in Mudlet? We did not confirm it.
-9. Do the images that Runware makes look like pixel art after the cleanup? We have not run the script against the API yet.
+7. Answered in Mudlet for `imageScale` 1: the stylesheet that the code builds shows crisp frames and flat text areas for all roles of `perdow` and `welstar`. Scale 2 and 3 are not tested.
+8. Answered in Mudlet: `background-repeat: repeat` tiles the window image without a seam.
+9. The images came out as pixel art after the cleanup, and the player has not judged them yet. The frames of `wysoom` (pink coral) and `raji` (sunset pink) use colours that differ from their palettes. Do we re-roll with another seed, or recolour the images to the palette?
 
 ## Appendix A: the six presets
 

@@ -101,13 +101,14 @@ local STYLE = {
 -- Image slices (top, right, bottom, left) in image pixels: the art contract of
 -- doc/spec/theming.md. The window role has no slices because it is a tile.
 local NINE = {
-    panel = { 8, 8, 8, 8 }, statusbar = { 4, 8, 4, 8 }, button = { 6, 6, 6, 6 },
-    tab = { 4, 4, 4, 4 }, tabActive = { 4, 4, 4, 4 },
+    panel = { 16, 16, 16, 16 }, statusbar = { 8, 16, 8, 16 }, button = { 12, 12, 12, 12 },
+    tab = { 8, 8, 8, 8 }, tabActive = { 8, 8, 8, 8 },
 }
 
 -- Stylesheet for a Geyser label. The rule is wrapped in QLabel{} so a tooltip does not
 -- inherit it. An image is nine-slice: the corners stay sharp at imageScale times their
--- size and the edges and the middle repeat. Plain stretching smears pixel art (tested in
+-- size and the edges and the middle repeat. `repeat` and not `round`: round rescales the
+-- tile with smoothing, which draws dark seam lines (seen in Mudlet). Plain stretching smears pixel art (tested in
 -- Mudlet). A window image is a tile at its own size. Text sits on top of the image.
 -- An unsafe image path is ignored (THEME-008). shortcut: no hover look with an image;
 -- add a second image per role if players want one.
@@ -121,7 +122,7 @@ function T.css(role, theme, imagePath)
     if imagePath and not imagePath:find('["\n\r]') then
         local path, n, k = imagePath:gsub("\\", "/"), NINE[role], theme.imageScale
         if n then
-            fill = ('border-image: url("%s") %d %d %d %d round round;'):format(path, n[1], n[2], n[3], n[4])
+            fill = ('border-image: url("%s") %d %d %d %d repeat repeat;'):format(path, n[1], n[2], n[3], n[4])
             border = ("border-width: %dpx %dpx %dpx %dpx;"):format(n[1] * k, n[2] * k, n[3] * k, n[4] * k)
         else
             fill = ('background-image: url("%s"); background-repeat: repeat;'):format(path)
@@ -136,6 +137,15 @@ function T.css(role, theme, imagePath)
     local out = "QLabel{" .. table.concat(parts, " ") .. "}"
     if hover then out = out .. "QLabel::hover{border: 1px solid " .. rgba(c[hover]) .. ";}" end
     return out
+end
+
+-- Hex text colour of a role. A Geyser label draws echo text in its own colour and ignores
+-- the stylesheet colour (seen in Mudlet), so an element passes this to label:echo(text, colour).
+function T.textColor(role, theme)
+    local s = STYLE[role]
+    if not s then return nil, "unknown role: " .. tostring(role) end
+    local c = theme.colors[s.fg]
+    return ("#%02X%02X%02X"):format(c[1], c[2], c[3])
 end
 
 -- THEME-009. The player's folder wins over the folder of the theme.

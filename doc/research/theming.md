@@ -57,6 +57,14 @@ We tested a made-up 24 by 24 pixel frame on four labels. The player looked at a 
 
 So pixel art needs nine-slice images that the code shows at a whole-number scale. This is why the theme design has `imageScale` and the art contract in `doc/spec/theming.md`. We tested the exact stylesheet that the code builds, with the `window` tile, only after this. The result is open question 7 and 8 in the spec.
 
+### 3b. The real images with the real stylesheet builder
+
+We loaded the theme code of the repository into the test profile and drew a status bar, a panel, a button, two tabs, and a window tile for `perdow` and `welstar` from the generated images. The player looked at screenshots.
+
+1. With `border-image: ... round round` the panels showed two thin dark lines across the middle. `round` scales the tiles with smoothing, and the smoothing mixes in the dark edge pixels. With `repeat repeat` the lines were gone.
+2. The `color:` in the stylesheet did not change the text that `Geyser.Label:echo` drew. The text stayed white, which was unreadable on `welstar`. Passing a hex colour to `echo(text, colour)` fixed it.
+3. With these two changes, the frames, corners, flat text areas, tabs, and the window tile looked right at `imageScale` 1.
+
 ### 4. Restyling an `Adjustable.Container`
 
 1. The container keeps its parts as fields: `adjLabel` (the frame and the title), `minimizeLabel`, `exitLabel`, and others. Each is a `Geyser.Label`.

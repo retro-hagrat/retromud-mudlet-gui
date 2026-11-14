@@ -176,8 +176,8 @@ css = T.css("tabActive", base); has(css, "border: 1px solid rgb(150,224,70);", "
 lacks(T.css("panel", base), "::hover", "panel has no hover rule")
 -- images
 css = T.css("panel", base, "/home/u/theme/panel.png")
-has(css, 'border-image: url("/home/u/theme/panel.png") 8 8 8 8 round round;', "panel image is nine-slice 8")
-has(css, "border-width: 16px 16px 16px 16px;", "panel border width is the slice times the scale"); lacks(css, "background-color", "image replaces the background")
+has(css, 'border-image: url("/home/u/theme/panel.png") 16 16 16 16 repeat repeat;', "panel image is nine-slice 16")
+has(css, "border-width: 16px 16px 16px 16px;", "panel border width is the slice times the scale (scale 1)"); lacks(css, "background-color", "image replaces the background")
 lacks(css, "border: 1px", "image replaces the plain border")
 has(css, "color: rgb(222,236,226);", "text colour stays with an image")
 css = T.css("panel", base, "C:\\Users\\u\\panel.png"); has(css, 'url("C:/Users/u/panel.png")', "backslashes become slashes")
@@ -187,24 +187,24 @@ has(css, "background-color", "unsafe image falls back to colour")
 css = T.css("panel", base, "/x/a\nb.png"); lacks(css, "border-image", "path with a newline is ignored")
 css = T.css("panel", base, "/x/a\rb.png"); lacks(css, "border-image", "path with a carriage return is ignored")
 -- nine-slice for every image role (the art contract of doc/spec/theming.md)
-local slices = { statusbar = { "4 8 4 8", "8px 16px 8px 16px" }, button = { "6 6 6 6", "12px 12px 12px 12px" },
-                 tab = { "4 4 4 4", "8px 8px 8px 8px" }, tabActive = { "4 4 4 4", "8px 8px 8px 8px" } }
+local slices = { statusbar = { "8 16 8 16", "8px 16px 8px 16px" }, button = { "12 12 12 12", "12px 12px 12px 12px" },
+                 tab = { "8 8 8 8", "8px 8px 8px 8px" }, tabActive = { "8 8 8 8", "8px 8px 8px 8px" } }
 for role, w in pairs(slices) do
     css = T.css(role, base, "/i/" .. role .. ".png")
-    has(css, 'url("/i/' .. role .. '.png") ' .. w[1] .. " round round;", role .. " slices")
+    has(css, 'url("/i/' .. role .. '.png") ' .. w[1] .. " repeat repeat;", role .. " slices")
     has(css, "border-width: " .. w[2] .. ";", role .. " border width"); has(css, "color: rgb(", role .. " keeps the text colour with an image")
     has(css, "font-size: 10pt;", role .. " keeps the font with an image"); lacks(css, "::hover", role .. " has no hover rule with an image")
 end
 css = T.css("button", base); has(css, "QLabel::hover", "button without an image keeps its hover")
 -- the scale changes the border width, not the slices
 local big = T.resolve("perdow", { imageScale = 3 })
-css = T.css("panel", big, "/i/p.png"); has(css, " 8 8 8 8 round round;", "scale 3 keeps the slices"); has(css, "border-width: 24px 24px 24px 24px;", "scale 3 border width")
-css = T.css("statusbar", big, "/i/s.png"); has(css, "border-width: 12px 24px 12px 24px;", "scale 3 statusbar border width")
-eq(T.resolve("perdow").imageScale, 2, "default scale is 2")
-for _, n in ipairs(NAMES) do eq(T.resolve(n).imageScale, 2, "preset scale is 2: " .. n) end
+css = T.css("panel", big, "/i/p.png"); has(css, " 16 16 16 16 repeat repeat;", "scale 3 keeps the slices"); has(css, "border-width: 48px 48px 48px 48px;", "scale 3 border width")
+css = T.css("statusbar", big, "/i/s.png"); has(css, "border-width: 24px 48px 24px 48px;", "scale 3 statusbar border width")
+eq(T.resolve("perdow").imageScale, 1, "default scale is 1")
+for _, n in ipairs(NAMES) do eq(T.resolve(n).imageScale, 1, "preset scale is 1: " .. n) end
 for _, bad in ipairs({ 1.5, 0, -1, "2" }) do
     local th, pr = T.resolve("perdow", { imageScale = bad })
-    eq(th.imageScale, 2, "bad scale keeps the old value: " .. tostring(bad)); eq(#pr, 1, "bad scale reports one problem: " .. tostring(bad))
+    eq(th.imageScale, 1, "bad scale keeps the old value: " .. tostring(bad)); eq(#pr, 1, "bad scale reports one problem: " .. tostring(bad))
 end
 eq(#select(2, T.resolve("perdow", { imageScale = 1 })), 0, "scale 1 is valid"); eq(T.resolve("perdow", { imageScale = 4 }).imageScale, 4, "scale 4 is valid")
 -- the window image is a tile at its own size
@@ -229,6 +229,16 @@ for _, n in ipairs(NAMES) do
     local th = T.resolve(n)
     for _, role in ipairs(T.roles) do eq(type(T.css(role, th)), "string", ("css %s/%s"):format(n, role)) end
 end
+
+---------------------------------------------------------------- text colour for echo
+for _, role in ipairs(T.roles) do eq(T.textColor(role, base):match("^#%x%x%x%x%x%x$") ~= nil, true, "hex colour for " .. role) end
+eq(T.textColor("statusbar", base), "#DEECE2", "statusbar text colour is the text token")
+eq(T.textColor("tab", base), "#96B09C", "tab text colour is textMuted")
+eq(T.textColor("tabActive", base), "#DEECE2", "active tab text colour is the text token")
+eq(T.textColor("window", base), "#DEECE2", "window text colour")
+local nk, nwhy = T.textColor("nope", base); eq(nk, nil, "unknown role: nil"); has(nwhy, "unknown role", "unknown role reason")
+local alphaTheme = T.resolve("perdow", { colors = { text = { 1, 2, 255, 10 } } })
+eq(T.textColor("panel", alphaTheme), "#0102FF", "alpha is ignored in the hex colour")
 
 ---------------------------------------------------------------- image lookup (THEME-009)
 local dirs = { player = "/p/retromud-gui-theme", themes = "/pkg/themes" }
