@@ -127,7 +127,7 @@ We read the mapper source on 2026-11-14. The commands `start`, `stop`, `where`, 
 ## Vitals
 
 1. The mapper finds the end of a prompt with `isPrompt()`. RetroMUD sends a GA/EOR signal after every prompt. The GUI uses the same method.
-2. The player can change the prompt format. The default form is `Hp: 10/20 Sp: 5/9 Ep: 7/7`.
+2. The player can change the prompt format. The default form is `Hp: 10/20 Sp: 5/9 Ep: 7/7`. Seen in live output: `Hp: 10/20 Sp: 5/9 Ep: 7/7 Gold: 3 Exp: 40 >` and `Hp:10/20 Sp:5/9 Ep:7/7 Exp:40 >`. So a space after `Hp:` is optional, and the fields `Gold` and `Exp` are optional. The line ends with `>`.
 3. The vitals module reads the prompt line and raises `rmgui.onVitals`. It does not guess a maximum value when the prompt shows only the current value. It takes the maximum from the `score` screen.
 4. The parser rejects lines that look like chat, rejects impossible values, and ignores a line that it already handled.
 5. The parser is pure Lua, with no Geyser calls, so that we can test it offline.
@@ -213,6 +213,10 @@ The GUI must be easy to customize, also for players who do not write code. A pla
 1. A missing, unreadable, or invalid image is skipped. The GUI uses the default and prints one short message. It must not repeat the message.
 2. An unknown key or a wrong type in the settings file is ignored for that key. The rest of the file still applies.
 
+### Tested in Mudlet (2026-11-14)
+
+We tested live theme changes in Mudlet 5.1.1. The results and the design consequences are in `doc/research/theming.md`. The main points: a stylesheet or an image can change on a live label, and an image file is read again only when the code calls `setBackgroundImage` again. A `border-image` stylesheet stretches an image and keeps text on top. An `Adjustable.Container` can be restyled through its inner labels. The main text window and the ANSI colours cannot be changed from Lua. An uninstall deletes the whole package folder, and a global variable stays.
+
 ### Verified against the Mudlet manual (2026-11-14)
 
 The pages are in the Sources list below. Items marked "summary" come from a tool summary of a page, not from the exact text. Check them again in Mudlet before we rely on them.
@@ -231,9 +235,9 @@ The pages are in the Sources list below. Items marked "summary" come from a tool
 
 ### Not confirmed
 
-1. Where Mudlet puts the files from `src/resources/` after install, and whether an uninstall deletes them. An earlier read of the Packages page says they go to `getMudletHomeDir() .. "/<package name>"`. The theming page read did not confirm this. Test it with a built package. The player's images stay in the profile theme folder either way.
+1. Answered in Mudlet: the files from `src/resources/` go to `getMudletHomeDir() .. "/<package name>"`, and an uninstall deletes that folder. The player's images stay in the profile theme folder, outside the package folder.
 2. How to ship a TTF font and use it in a label.
-3. How to give the frame, the title, or the buttons of an `Adjustable.Container` a custom image. The manual has a section "Change Adjustable Container Style" that we did not read yet. Read it before we design the container looks.
+3. Answered in Mudlet for colours: call `setStyleSheet` on the inner labels `adjLabel`, `minimizeLabel`, and `exitLabel`. A custom image on the frame is not tested. The inner labels are not documented, so each call needs `pcall`.
 4. Background transparency for a miniconsole.
 5. Memory use and caching of large images. Document a recommended maximum size after we test.
 6. Spaces in image paths.
