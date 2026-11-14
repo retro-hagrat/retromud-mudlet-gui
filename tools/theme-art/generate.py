@@ -26,9 +26,9 @@ NEGATIVE = ("smooth, blurry, anti-aliased, photo, realistic, 3d, perspective, te
 
 MOTIF = {
     "welstar": "white marble and gold trim, paladin heraldry with shields, swords and laurel wreaths, fluted columns, noble and orderly",
-    "crypt": "vampire crypt, black-violet stone and bone, blood crimson accents, small bats and fangs, stalactite arches, gothic and cold",
+    "crypt": "vampire crypt, black-violet stone and bone white, rich blood crimson red accents and trim, small bats and fangs, stalactite arches, gothic and cold",
     "sosel": "volcano and jungle, black basalt with glowing lava cracks, dinosaur claw and scale patterns, fern leaves, hot and fierce",
-    "wysoom": "deep ocean, coral and polished shells, shark fins and shark teeth, rolling waves, blue and glowing",
+    "wysoom": "deep ocean using only cyan, teal and deep blue colors with white sea foam, no pink, no red, no orange, shark fins and rows of shark teeth, polished shells, rolling waves, glowing blue",
     "raji": "sky and djinn, Arabian arches and filigree, drifting clouds and stars, lamp and smoke swirls, gold trim, twilight and magical",
     "perdow": "darkness and carnivorous plants, thorny vines, venus flytrap jaws, pitcher plants with dripping toxic green, crimson flower maws, sinister",
 }
@@ -49,6 +49,13 @@ ROLES = {
 }
 # Slices (top, right, bottom, left) in art pixels. Must match NINE in src/scripts/theme/logic.lua.
 # The window role is a tile at its own size, so it has no slices.
+# Role text for one image that needs its own idea. It replaces the role text of ROLES.
+ROLE_OVERRIDE = {
+    ("raji", "statusbar"): "a wide ornate Arabian brocade ribbon bar, 64x32 pixels, rich repeating gold arabesque "
+        "and damask floral pattern in the style of woven brocade silk, deep indigo and violet cloth with gold thread, "
+        "the pattern runs along the top band and the bottom band and fills the 16 pixel end caps, "
+        "a plain flat dark center strip",
+}
 SLICE = {"window": None, "panel": (16, 16, 16, 16), "statusbar": (8, 16, 8, 16),
          "button": (12, 12, 12, 12), "tab": (8, 8, 8, 8), "tabActive": (8, 8, 8, 8)}
 
@@ -72,7 +79,7 @@ def prompt(theme, role, pal):
     p = pal[theme]
     colors = (f"Base colors {hexc(p['surface'])} and {hexc(p['surfaceAlt'])}, border {hexc(p['border'])}, "
               f"accent {hexc(p['accent'])}.")
-    return f"{STYLE}. THEME {theme}: {colors} {MOTIF[theme]}. ROLE {role}: {ROLES[role][4]}."
+    return f"{STYLE}. THEME {theme}: {colors} {MOTIF[theme]}. ROLE {role}: {ROLE_OVERRIDE.get((theme, role), ROLES[role][4])}."
 
 
 def lin(c):

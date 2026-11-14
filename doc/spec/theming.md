@@ -161,6 +161,8 @@ The motifs follow the planet style guide:
 | `sosel` | Volcano and jungle, black basalt with glowing lava cracks, dinosaur claw and scale patterns, fern leaves |
 | `wysoom` | Deep ocean, coral and polished shells, shark fins and shark teeth, rolling waves |
 | `raji` | Sky and djinn, Arabian arches and filigree, drifting clouds and stars, lamp and smoke swirls, gold trim |
+
+The `raji` status bar has its own role text in the script (`ROLE_OVERRIDE`): ornate Arabian brocade in gold thread on deep indigo, with the pattern in the top band, the bottom band, and the end caps. The player chose seed 42 out of four. Any other image can get an override in the same way.
 | `perdow` | Darkness and carnivorous plants, thorny vines, venus flytrap jaws, pitcher plants with dripping toxic green, crimson flower maws |
 
 ## 8. Look of an `Adjustable.Container`
