@@ -30,6 +30,7 @@ MOTIF = {
     "sosel": "volcano and jungle, black basalt with glowing lava cracks, dinosaur claw and scale patterns, fern leaves, hot and fierce",
     "wysoom": "deep ocean using only cyan, teal and deep blue colors with white sea foam, no pink, no red, no orange, shark fins and rows of shark teeth, polished shells, rolling waves, glowing blue",
     "raji": "sky and djinn, Arabian arches and filigree, drifting clouds and stars, lamp and smoke swirls, gold trim, twilight and magical",
+    "wood": "dark brown oak wood planks with visible wood grain and a few knots, rich brown and amber wood tones, solid pure black background",
     "perdow": "darkness and carnivorous plants, thorny vines, venus flytrap jaws, pitcher plants with dripping toxic green, crimson flower maws, sinister",
 }
 # Runware hangs on square sizes above 256 (seen on 2026-11-14), so square roles are generated at 256x256.
@@ -65,6 +66,17 @@ ROLE_OVERRIDE = {
         "tile, deep sea blue and teal with cyan highlights only, no pink, no red, no orange, "
         "every shape clearly drawn, the edges match so it repeats without a visible seam",
 }
+# Themes whose frame is thinner than the slice: everything farther than this many pixels from an edge
+# is painted flat, so the wood stays a thin border and the rest of the frame is plain.
+THIN = {"wood": 4}
+THIN_BAR = {"wood": 2}  # the status bar frame is thinner than the other frames of the theme
+ROLE_OVERRIDE[("wood", "panel")] = ("a square picture frame, 64x64 pixels, made only of a thin wooden plank border about 4 pixels wide "
+    "with visible horizontal wood grain on the top and bottom and vertical grain on the sides, mitred corners, "
+    "the whole inside of the frame is solid pure black")
+ROLE_OVERRIDE[("wood", "statusbar")] = ("a wide bar, 64x32 pixels, a thin wooden plank border about 3 pixels wide "
+    "along the top and the bottom with visible wood grain, thin wooden ends, the whole inside is solid pure black")
+ROLE_OVERRIDE[("wood", "button")] = ("a small square button frame, 48x48 pixels, a thin wooden plank border about 3 pixels wide "
+    "with visible wood grain and mitred corners, the whole inside is solid pure black")
 SLICE = {"window": None, "panel": (16, 16, 16, 16), "statusbar": (8, 16, 8, 16),
          "button": (12, 12, 12, 12), "tab": (12, 12, 12, 12), "tabActive": (12, 12, 12, 12)}
 
@@ -111,22 +123,33 @@ def contrast(a, b):
 DERIVED = ("tab", "tabActive")
 
 
-def derive_tabs(button, pal):
+def derive_tabs(button, pal, thin=0):
     """tab = the button; tabActive = the button with the lighter text area and an accent line on top."""
     tab = button.copy()
     active = button.copy(); px = active.load()
-    for y in range(12, active.height - 12):
-        for x in range(12, active.width - 12): px[x, y] = pal["surface"]
+    inner = thin or 12  # a thin frame keeps its whole inside one colour
+    for y in range(inner, active.height - inner):
+        for x in range(inner, active.width - inner): px[x, y] = pal["surface"]
     for y in range(2):
         for x in range(active.width): px[x, y] = pal["accent"]
     return tab, active
+
+
+def derive_statusbar(panel, pal, thin):
+    """A thin-frame theme: the model drew the wide bar badly (no wood), so cut the bar from the panel art."""
+    bar = Image.new("RGB", (64, 32)); src = panel.load(); px = bar.load()
+    for y in range(32):
+        sy = y if y < 8 else y + 32 if y >= 24 else 16 + (y - 8)
+        for x in range(64):
+            px[x, y] = pal["surfaceAlt"] if min(x, y, 63 - x, 31 - y) >= thin else src[x, sy]
+    return bar
 
 
 FILL = {"panel": "surface", "statusbar": "surfaceAlt", "button": "surfaceAlt", "tab": "surfaceAlt", "tabActive": "surface"}
 WINDOW_BLEND = 0.55  # share of the surface colour mixed into the window tile
 
 
-def cleanup(img, role, pal):
+def cleanup(img, role, pal, thin=0):
     """Shrink to the exact pixel size, cut the palette, mirror so the corners match,
     then make the text area plain."""
     (w, h), _, axes, _, _ = ROLES[role]
@@ -157,6 +180,10 @@ def cleanup(img, role, pal):
         px = img.load()
         for y in range(t, img.height - b):
             for x in range(l, img.width - r): px[x, y] = pal[FILL[role]]
+        if thin:
+            for y in range(img.height):
+                for x in range(img.width):
+                    if min(x, y, img.width - 1 - x, img.height - 1 - y) >= thin: px[x, y] = pal[FILL[role]]
         if role == "tabActive":  # bright accent line on the top edge
             for y in range(2):
                 for x in range(img.width): px[x, y] = pal["accent"]
@@ -251,9 +278,13 @@ def main():
 
     def write_derived(t):
         btn = Image.open(os.path.join(OUT, t, "button.png")).convert("RGB")
-        for name, img in zip(DERIVED, derive_tabs(btn, pal[t])):
+        for name, img in zip(DERIVED, derive_tabs(btn, pal[t], THIN.get(t, 0))):
             img.save(os.path.join(OUT, t, name + ".png"))
             print(f"{t}/{name}: derived from the button, worst text contrast {worst_contrast(img, name, pal[t]):.1f}")
+        if THIN.get(t):
+            bar = derive_statusbar(Image.open(os.path.join(OUT, t, "panel.png")).convert("RGB"), pal[t], THIN_BAR.get(t, THIN[t]))
+            bar.save(os.path.join(OUT, t, "statusbar.png"))
+            print(f"{t}/statusbar: cut from the panel, worst text contrast {worst_contrast(bar, 'statusbar', pal[t]):.1f}")
     if a.derive_tabs:
         for t in themes: write_derived(t)
         return
@@ -265,7 +296,7 @@ def main():
         for t in themes:
             os.makedirs(os.path.join(OUT, t), exist_ok=True)
             for r in roles:
-                img = cleanup(Image.open(os.path.join(RAW, f"{t}-{r}.png")), r, pal[t])
+                img = cleanup(Image.open(os.path.join(RAW, f"{t}-{r}.png")), r, pal[t], THIN.get(t, 0))
                 img.save(os.path.join(OUT, t, r + ".png"))
                 c = worst_contrast(img, r, pal[t])
                 print(f"{t}/{r}: wrote {img.size[0]}x{img.size[1]}, worst text contrast {c:.1f}" + ("  WARN below 4.5" if c < 4.5 else ""))
@@ -282,7 +313,7 @@ def main():
         os.makedirs(os.path.join(OUT, t), exist_ok=True)
         for r, task in zip(roles, tasks):
             data = download(urls[task["taskUUID"]])
-            img = cleanup(Image.open(io.BytesIO(data)), r, pal[t])
+            img = cleanup(Image.open(io.BytesIO(data)), r, pal[t], THIN.get(t, 0))
             if a.out:
                 os.makedirs(a.out, exist_ok=True)
                 open(os.path.join(a.out, f"{t}-{r}-raw.png"), "wb").write(data)

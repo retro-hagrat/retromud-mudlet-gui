@@ -38,7 +38,7 @@ setMapBackgroundColor(1, 2, 3); setMapRoomExitsColor(4, 5, 6)
 load()
 local st = rmgui.core.state()
 eq(st.started, true, "started at load"); eq(#st.failed, 0, "no failed module"); eq(st.order[#st.order], "boot", "boot is last")
-eq(F.counts().aliases, 4, "four aliases"); eq(rmgui.theme.state.active, "perdow", "default theme applied")
+eq(F.counts().aliases, 4, "four aliases"); eq(rmgui.theme.state.active, "wood", "default theme applied")
 eq(names() > 5, true, "objects built"); eq(F.objects["rmgui.chat.console.all"] ~= nil, true, "chat console built without math.tointeger")
 
 F.sendAlias("rgui theme raji"); eq(rmgui.theme.state.active, "raji", "theme alias"); eq(rmgui.boot.env.settings.theme, "raji", "theme setting changed")

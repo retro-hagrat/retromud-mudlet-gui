@@ -26,7 +26,7 @@ end
 ---------------------------------------------------------------- defaults
 local d = S.defaults()
 eq(d.version, 1, "default version")
-eq(d.theme, "perdow", "default theme")
+eq(d.theme, "wood", "default theme")
 eq(d.mapTheming, true, "default mapTheming")
 eq(d.cmdlineTheming, false, "default cmdlineTheming")
 eq(d.layout.mode, "auto", "default layout mode")
@@ -43,18 +43,18 @@ d.ui.hintShown = true
 local d2 = S.defaults()
 eq(d2.chat.keepInMain.chat, true, "defaults are fresh: keepInMain")
 eq(d2.layout.mode, "auto", "defaults are fresh: layout")
-eq(d2.theme, "perdow", "defaults are fresh: theme")
+eq(d2.theme, "wood", "defaults are fresh: theme")
 eq(d2.ui.hintShown, false, "defaults are fresh: ui")
 
 ---------------------------------------------------------------- merge
 local m, p = S.merge({})
 eq(#p, 0, "empty table has no problems")
-eq(m.theme, "perdow", "empty table gives defaults")
+eq(m.theme, "wood", "empty table gives defaults")
 
 for _, bad in ipairs({ "text", 5, true }) do
     m, p = S.merge(bad)
     eq(#p, 1, "non-table input: one problem " .. tostring(bad))
-    eq(m.theme, "perdow", "non-table input gives defaults")
+    eq(m.theme, "wood", "non-table input gives defaults")
 end
 m, p = S.merge(nil)
 eq(#p, 1, "nil input: one problem")
@@ -130,10 +130,10 @@ for i, c in ipairs(cases) do
     m, p = S.merge(c[1])
     eq(#p, 1, "wrong type case " .. i .. ": one problem")
     problemsMention(p, c[2], "wrong type case " .. i .. ": names path")
-    eq(m.theme, "perdow", "wrong type case " .. i .. ": defaults kept")
+    eq(m.theme, "wood", "wrong type case " .. i .. ": defaults kept")
 end
 m = S.merge({ theme = 5, chat = { keepInMain = { tells = "no" } } })
-eq(m.theme, "perdow", "bad theme ignored")
+eq(m.theme, "wood", "bad theme ignored")
 eq(m.chat.keepInMain.tells, true, "bad keepInMain value ignored")
 
 -- maxLines boundaries
@@ -163,7 +163,7 @@ local FILE = "/home/bran/retromud-gui-settings.lua"
 local env = fakeEnv()
 m, p = S.load(env)
 eq(#p, 0, "missing file: no problem")
-eq(m.theme, "perdow", "missing file: defaults")
+eq(m.theme, "wood", "missing file: defaults")
 
 -- round trip
 local want = S.defaults()
@@ -192,14 +192,14 @@ env.load = function() return nil, "bad syntax" end
 m, p = S.load(env)
 eq(#p, 1, "corrupt: one problem")
 problemsMention(p, "bad syntax", "corrupt: message kept")
-eq(m.theme, "perdow", "corrupt: defaults")
+eq(m.theme, "wood", "corrupt: defaults")
 env.load = function() return nil end
 m, p = S.load(env)
 eq(#p, 1, "load returns nil without message: one problem")
 env.load = function() return "text" end
 m, p = S.load(env)
 eq(#p, 1, "non-table load: one problem")
-eq(m.theme, "perdow", "non-table load: defaults")
+eq(m.theme, "wood", "non-table load: defaults")
 
 -- partial and bad content in file
 env = fakeEnv()
@@ -213,7 +213,7 @@ env = fakeEnv()
 env.exists = function() error("boom") end
 m, p = S.load(env)
 eq(#p, 1, "exists raises: one problem")
-eq(m.theme, "perdow", "exists raises: defaults")
+eq(m.theme, "wood", "exists raises: defaults")
 env = fakeEnv()
 env.files[FILE] = true
 env.load = function() error("boom") end
@@ -229,7 +229,7 @@ eq(tostring(err):find("disk full", 1, true) ~= nil, true, "save raises: message 
 -- bad env
 m, p = S.load(nil)
 eq(#p, 1, "load nil env: one problem")
-eq(m.theme, "perdow", "load nil env: defaults")
+eq(m.theme, "wood", "load nil env: defaults")
 m, p = S.load({})
 eq(#p, 1, "load env without homeDir: one problem")
 ok, err = S.save(nil, S.defaults())
@@ -256,7 +256,7 @@ eq(env.files[FILE], nil, "save non-table: nothing written")
 local junk = { theme = 5, evil = "x", layout = { mode = "huge", extra = 1 }, chat = { maxLines = 5, keepInMain = { tells = "no", mirel = true } } }
 eq(S.save(env, junk), true, "save invalid table still succeeds with clean data")
 local w = env.files[FILE]
-eq(w.theme, "perdow", "junk: theme replaced")
+eq(w.theme, "wood", "junk: theme replaced")
 eq(w.evil, nil, "junk: unknown key dropped")
 eq(w.layout.extra, nil, "junk: unknown layout key dropped")
 eq(w.layout.mode, "auto", "junk: mode replaced")
@@ -270,7 +270,7 @@ eq(select("#", S.path("a\\b")), 1, "path returns one value")
 eq(math.type(S.merge({ chat = { maxLines = 500.0 } }).chat.maxLines), "integer", "maxLines float normalised")
 local hostile = setmetatable({}, { __index = function() error("boom") end })
 local hm, hp = S.merge(hostile)
-eq(hm.theme, "perdow", "hostile table: defaults")
+eq(hm.theme, "wood", "hostile table: defaults")
 eq(#hp, 1, "hostile table: one problem")
 eq(select("#", S.save({ homeDir = "x", save = function() return true end }, hostile)), 1, "hostile save returns")
 

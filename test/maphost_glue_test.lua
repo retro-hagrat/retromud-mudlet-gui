@@ -61,6 +61,12 @@ eq(O("mapper").parent, slot, "mapper in slot")
 eq(O("mapper").width, "100%", "mapper fills slot")
 F.fire("rmap.onRoom", {})
 eq(#slot.children, 1, "no second mapper")
+local raises = 0
+O("mapper").raise = function() raises = raises + 1 end
+F.fire("rmgui.onLayout")
+eq(raises, 1, "a layout event raises the map above the panel labels")
+theme()
+eq(raises, 2, "a theme change raises the map too")
 rmgui.maphost.teardown()
 pristine("fallback teardown")
 rmgui.maphost.teardown()

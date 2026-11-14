@@ -200,7 +200,7 @@ local function theming(ctx)
     if not S.built then return end
     local function css(obj, role) pcall(obj.setStyleSheet, obj, ctx.css(role)) end
     if type(t) == "table" and type(t.colors) == "table" then -- the thin edge of each container
-        local frame = ("QLabel{background-color: %s; border: 1px solid %s;}"):format(rgb(t.colors.surface), rgb(t.colors.border))
+        local frame = ("QLabel{background-color: %s; border: none;}"):format(rgb(t.colors.surface))
         for _, col in ipairs({ S.topBar, S.leftCol, S.rightCol }) do
             if col and col.adjLabel then pcall(col.adjLabel.setStyleSheet, col.adjLabel, frame) end
         end

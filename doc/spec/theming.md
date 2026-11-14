@@ -60,7 +60,7 @@ THEME-013. Every preset must have enough contrast. The ratio uses the WCAG formu
 
 THEME-014. The presets ship without images. An image of the player replaces the background of its role, and the text sits directly on it. The module does not check images. The file `README.txt` in the theme folder must tell the player that an image must keep the text readable. A later version can put a half-transparent layer over an image. See section 5.
 
-THEME-019. Theming is on by default. The GUI applies the saved theme, or `perdow` when no theme is saved. `perdow` is the home world of the game. Map theming is on by default. The player can turn map theming off with a setting.
+THEME-019. Theming is on by default. The GUI applies the saved theme, or `wood` when no theme is saved. `wood` is a plain dark walnut theme with no pictures. Map theming is on by default. The player can turn map theming off with a setting.
 
 THEME-015. When the GUI changes the map colours, it must first save the old values with `getMapBackgroundColor()` and `getMapRoomExitsColor()`. It must put them back when the package is uninstalled and when the player turns map theming off.
 
@@ -128,7 +128,7 @@ The function `rmgui.theme.apply(name)` does these steps in order:
 
 1. Find the preset with this name. If it does not exist, show a message and stop. The old theme stays.
 2. Merge the override file over the preset (THEME-010).
-3. Check the merged theme. A key that is missing gets the value of the default theme (`perdow`). A value of the wrong type is replaced in the same way, and the module shows one message.
+3. Check the merged theme. A key that is missing gets the value of the default theme (`wood`). A value of the wrong type is replaced in the same way, and the module shows one message.
 4. Find the image for each role. The theme folder comes first. Then comes the folder of the preset. If no file exists, the role has no image (THEME-008).
 5. Call the function of each registered element, inside `pcall` (THEME-007). The function receives the merged theme and the image paths. It calls the style setters again (THEME-005). A label ignores the `color:` of its stylesheet for text that it shows with `echo`. So the element must pass the colour from `rmgui.theme.textColor(role, theme)` to `label:echo(text, colour)`.
 6. If map theming is on, save the old map colours when this is the first apply, and set the map colours (THEME-015).
@@ -196,7 +196,7 @@ A theme can be a separate package. The package holds a `theme.lua` file and its 
 8. Answered in Mudlet: `background-repeat: repeat` tiles the window image without a seam.
 9. The images came out as pixel art after the cleanup, and the player has not judged them yet. The frames of `wysoom` (pink coral) and `raji` (sunset pink) use colours that differ from their palettes. Do we re-roll with another seed, or recolour the images to the palette?
 
-## Appendix A: the six presets
+## Appendix A: the presets
 
 The colours are `r,g,b`. The player can change any of them in the override file. All colours were chosen to look soft and rich. None is a pure primary colour. Each preset follows the style guide of its planet.
 
@@ -205,7 +205,8 @@ The colours are `r,g,b`. The player can change any of them in the override file.
 - `sosel` (fire, volcano, dinosaurs): basalt brown-black with lava orange and red, and jungle green for good states.
 - `wysoom` (water, sharkmen): deep sea navy with a cyan accent. The gauges use coral, azure, and aqua.
 - `raji` (air, djinn): twilight indigo with djinn gold and turquoise.
-- `perdow` (chaos, carnivorous plants, darkness): near-black green with a toxic green accent and crimson flower red. This is the default.
+- `perdow` (chaos, carnivorous plants, darkness): near-black green with a toxic green accent and crimson flower red.
+- `wood` (the default, not a planet): a black background with thin pixel wood borders on the buttons, tabs and status bar, cream text and an amber accent. It has no `panel.png`, and its `border` colour is black, so the panels have no visible border. Its pictures keep a 4 px wood frame and paint the rest of the frame flat (`THIN` in `generate.py`). The statusbar is cut from the panel art. Its colours are in `src/scripts/theme/presets.lua`.
 
 | Token | `welstar` | `crypt` | `sosel` | `wysoom` | `raji` | `perdow` |
 |---|---|---|---|---|---|---|

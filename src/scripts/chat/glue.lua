@@ -167,7 +167,7 @@ end
 
 local function destroyObjects()
     for i = #S.objs, 1, -1 do pcall(S.objs[i].delete, S.objs[i]) end
-    S.objs, S.tabs, S.tabText, S.consoles, S.order, S.unread = {}, {}, {}, {}, {}, {}
+    S.objs, S.tabs, S.tabText, S.consoles, S.order, S.unread, S.open = {}, {}, {}, {}, {}, {}, {}
     S.strip, S.built, S.fontBtns = nil, false, nil
 end
 
@@ -195,7 +195,20 @@ local function keep(group)
     return not (type(km) == "table" and km[group] == false)
 end
 
+-- Drop the indent of a wrapped line: the colour tags that copy2decho puts first stay, the spaces after them go.
+local function lstrip(dec)
+    local pre = ""
+    while true do
+        local tag = dec:match("^<%d+,%d+,%d+:%d+,%d+,%d+>") or dec:match("^<r>")
+        if not tag then break end
+        pre, dec = pre .. tag, dec:sub(#tag + 1)
+    end
+    return pre .. (dec:gsub("^%s+", ""))
+end
+
 -- append the current coloured game line to the tabs of msg
+-- shortcut: the line is written with decho, which also reads a literal <b>, <i>, <r> or <R,G,B> in the text as a
+-- colour tag; upgrade when a chat line with such text matters.
 local function route(msg, first)
     if not S.built then return end
     local tabs = C.tabsFor(msg)
@@ -203,15 +216,31 @@ local function route(msg, first)
         if id == "wizard" and not S.tabs.wizard then pcall(addTab, "wizard") end
     end
     pcall(selectCurrentLine)
-    pcall(copy)
+    local okD, dec = false, nil
+    if type(copy2decho) == "function" and type(decho) == "function" then okD, dec = pcall(copy2decho) end
+    if not okD or type(dec) ~= "string" then dec = nil; pcall(copy) end
     for _, id in ipairs(tabs) do
         local c = S.consoles[id]
         if c then
-            if first then
-                local p = C.prefixFor(msg, id)
-                if p ~= "" then pcall(c.echo, c, p) end
+            if dec then
+                -- a line stays open until the next message starts, so the wrapped rest of a message joins it with one space
+                S.open = S.open or {}
+                if first then
+                    if S.open[id] then pcall(c.echo, c, "\n") end
+                    local p = C.prefixFor(msg, id)
+                    if p ~= "" then pcall(c.echo, c, p) end
+                    S.open[id] = true
+                else
+                    pcall(c.echo, c, " ")
+                end
+                pcall(decho, NAME .. ".console." .. id, first and dec or lstrip(dec))
+            else
+                if first then
+                    local p = C.prefixFor(msg, id)
+                    if p ~= "" then pcall(c.echo, c, p) end
+                end
+                pcall(appendBuffer, NAME .. ".console." .. id)
             end
-            pcall(appendBuffer, NAME .. ".console." .. id)
             if id ~= S.active then
                 S.unread[id] = S.unread[id] + 1
                 drawTab(id)

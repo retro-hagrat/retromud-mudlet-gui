@@ -26,7 +26,7 @@ local function problemsMention(problems, part, label)
     eq(found, true, label)
 end
 
-local NAMES = { "welstar", "crypt", "sosel", "wysoom", "raji", "perdow" }
+local NAMES = { "welstar", "crypt", "sosel", "wysoom", "raji", "perdow", "wood" }
 
 ---------------------------------------------------------------- presets
 for _, n in ipairs(NAMES) do
@@ -38,9 +38,9 @@ for _, n in ipairs(NAMES) do
 end
 local count6 = 0
 for _ in pairs(T.presets) do count6 = count6 + 1 end
-eq(count6, 6, "exactly six presets")
+eq(count6, 7, "exactly seven presets")
 eq(T.presets[T.default] ~= nil, true, "the default theme exists")
-eq(T.default, "perdow", "the default theme is perdow")
+eq(T.default, "wood", "the default theme is wood")
 
 -- every preset has every key of the default theme (THEME-001), and the same types
 local function sameShape(a, b, path, label)
@@ -65,8 +65,8 @@ for i = 1, #NAMES do
     end
 end
 
--- no pure primary colours: no token is a pure red, green or blue (255,0,0 style)
-local function pure(c) return (c[1] == 0 or c[1] == 255) and (c[2] == 0 or c[2] == 255) and (c[3] == 0 or c[3] == 255) end
+-- no pure primary colours: no token is a pure red, green or blue (255,0,0 style). Pure black is allowed as a background.
+local function pure(c) return (c[1] == 0 or c[1] == 255) and (c[2] == 0 or c[2] == 255) and (c[3] == 0 or c[3] == 255) and (c[1] + c[2] + c[3] > 0) end
 for _, n in ipairs(NAMES) do
     for k, c in pairs(T.presets[n].colors) do
         if k ~= "map" then eq(pure(c), false, ("%s.%s is not a pure primary"):format(n, k)) end
@@ -109,7 +109,7 @@ eq(theme, nil, "unknown theme returns nil"); has(problems, "unknown theme", "unk
 theme, problems = T.resolve("perdow", { colors = { accent = { 1, 2, 3 } } })
 eq(theme.colors.accent[2], 2, "override replaces a colour"); eq(#problems, 0, "valid override: no problems")
 eq(theme.colors.surface[1], 10, "other colours stay")
-eq(T.presets[T.default].colors.accent[1], 150, "the preset table is not changed by an override")
+eq(T.presets.perdow.colors.accent[1], 150, "the preset table is not changed by an override")
 theme, problems = T.resolve("perdow", { colors = { accent = { 1, 2, 3, 128 } } })
 eq(theme.colors.accent[4], 128, "colour with alpha is accepted")
 -- nested table
@@ -154,7 +154,7 @@ theme, problems = T.resolve("perdow", nil); eq(#problems, 0, "nil override")
 local saved = T.presets.test
 T.presets.test = { name = "test", title = "T", description = "d", colors = { accent = { 9, 9, 9 } } }
 theme, problems = T.resolve("test")
-eq(theme.colors.accent[1], 9, "partial preset keeps its own value"); eq(theme.colors.surface[1], 10, "partial preset is filled from the default")
+eq(theme.colors.accent[1], 9, "partial preset keeps its own value"); eq(theme.colors.surface[1], T.presets[T.default].colors.surface[1], "partial preset is filled from the default")
 eq(theme.fonts.size, 10, "partial preset gets fonts from the default"); eq(#problems, 0, "partial preset has no problems")
 T.presets.test = saved
 

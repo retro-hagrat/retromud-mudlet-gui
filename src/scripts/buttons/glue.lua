@@ -29,6 +29,13 @@ local function api()
     return nil
 end
 
+-- shortcut: a mapper without rmap.api (0.0.4) has no isMapping(), so read its public flag rmap.mapping;
+-- remove this when every mapper has the api.
+local function flagMapping()
+    local ok, v = pcall(function() return rmap and rmap.mapping end)
+    if ok and type(v) == "boolean" then return v end
+end
+
 local function missing()
     local ok, v = pcall(env.packageVersion, "retromud")
     return not ok or v == nil
@@ -66,6 +73,8 @@ local function act(name)
         if a and type(a.isMapping) == "function" then
             local ok, v = pcall(a.isMapping)
             if ok then isOn = v and true or false end
+        elseif flagMapping() ~= nil then
+            isOn = flagMapping()
         end
         local verb = isOn and "stop" or "start"
         if a and type(a[verb]) == "function" then
@@ -103,6 +112,8 @@ local function build()
     if a and type(a.isMapping) == "function" then
         local ok3, v = pcall(a.isMapping)
         if ok3 then mapping = v and true or false end
+    elseif flagMapping() ~= nil then
+        mapping = flagMapping() -- the mapper was already on when this package loaded
     end
     texts.where, texts.scan, texts.undo = "where", "scan", "undo"
     texts.mapToggle = mapping and "stop map" or "start map"

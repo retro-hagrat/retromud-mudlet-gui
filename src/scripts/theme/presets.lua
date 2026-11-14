@@ -1,9 +1,9 @@
--- theme/presets: the six planet themes (doc/spec/theming.md, Appendix A). Data only.
+-- theme/presets: the planet themes and the default wood theme (doc/spec/theming.md, Appendix A). Data only.
 rmgui = rmgui or {}
 rmgui.theme = rmgui.theme or {}
 
 -- The theme that fills missing keys, and the one used before the player picks.
-rmgui.theme.default = "perdow"
+rmgui.theme.default = "wood"
 
 rmgui.theme.presets = {
     welstar = {
@@ -137,5 +137,28 @@ rmgui.theme.presets = {
         imageScale = 1,
         images = { window = false, statusbar = false, panel = false, button = false, tab = false, tabActive = false },
         cmdline = { background = { 18, 30, 24 }, text = { 222, 236, 226 } },
+    },
+    wood = {
+        name = "wood", title = "Wood", description = "Black background with thin dark wood borders, cream text, and amber trim.",
+        colors = {
+            surface = { 0, 0, 0 },
+            surfaceAlt = { 16, 11, 8 },
+            text = { 240, 226, 200 },
+            textMuted = { 196, 176, 148 },
+            accent = { 222, 160, 70 },
+            -- black: panels have no picture, so the line they fall back to is invisible
+            border = { 0, 0, 0 },
+            good = { 150, 200, 120 },
+            warn = { 236, 190, 84 },
+            danger = { 232, 110, 100 },
+            hp = { 226, 106, 92 },
+            sp = { 240, 184, 88 },
+            ep = { 152, 200, 110 },
+            map = { background = { 0, 0, 0 }, exits = { 190, 150, 100 } },
+        },
+        fonts = { family = "", size = 10, sizeSmall = 9 },
+        imageScale = 1,
+        images = { window = false, statusbar = false, panel = false, button = false, tab = false, tabActive = false },
+        cmdline = { background = { 16, 11, 8 }, text = { 240, 226, 200 } },
     },
 }

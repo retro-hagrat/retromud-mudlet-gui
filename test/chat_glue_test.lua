@@ -77,8 +77,8 @@ eq(tab("guild").x, "25.0000%", "sixth tab starts the second row at column two")
 ---------------------------------------------------------------- routing
 F.lines("Aldric [mentor]: Welcome to the game!", "You [hit]: 120")
 F.feedLine("Hp:1/1 >", { prompt = true })
-eq(txt("all"), "Aldric [mentor]: Welcome to the game!|", "all gets the line as the game sent it")
-eq(txt("chat"), "Aldric [mentor]: Welcome to the game!|", "chat tab")
+eq(txt("all"), "Aldric [mentor]: Welcome to the game!", "all gets the line as the game sent it")
+eq(txt("chat"), "Aldric [mentor]: Welcome to the game!", "chat tab")
 eq(txt("world"), "", "world empty")
 eq(F.lineDeleted, nil, "kept in main by default")
 eq(#events, 1, "onChat raised once the message is complete")
@@ -88,8 +88,15 @@ eq(ev[1] .. ev[2] .. ev[3] .. ev[4] .. ev[5], "mentorchatAldric[]Welcome to the 
 -- continuation: same tabs, no second prefix
 world(); G.init(env)
 F.lines("Aldric [mentor]: The trick with the first room is to look at", "      the sign twice.", "Nothing here.")
-eq(txt("chat"), "Aldric [mentor]: The trick with the first room is to look at|      the sign twice.|", "continuation routed")
+eq(txt("chat"), "Aldric [mentor]: The trick with the first room is to look at the sign twice.", "continuation joins the message with one space")
 eq(events[1][5], "The trick with the first room is to look at the sign twice.", "wrapped text joined")
+
+-- an indented rest joins the message, and the next message starts on a new line
+world(); G.init(env)
+F.lines("[info] Dalau the level 73 Mortal enters the game.", "      (16 players)", "Aldric [mentor]: hi", "Nothing here.")
+eq(txt("info"), "[info] Dalau the level 73 Mortal enters the game. (16 players)", "(16 players) follows the message on its line")
+eq(txt("all"), "[info] Dalau the level 73 Mortal enters the game. (16 players)|Aldric [mentor]: hi", "next message on a new line")
+
 
 -- every form
 local forms = {
@@ -113,8 +120,8 @@ for _, f in ipairs(forms) do
 end
 world(); G.init(env)
 F.lines("Mirel telepathically contacts you with 'hello'")
-eq(txt("tells"), "Mirel telepathically contacts you with 'hello'|", "tell has no prefix on its own tab")
-eq(txt("all"), "Mirel telepathically contacts you with 'hello'|", "tell has no prefix on all either")
+eq(txt("tells"), "Mirel telepathically contacts you with 'hello'", "tell has no prefix on its own tab")
+eq(txt("all"), "Mirel telepathically contacts you with 'hello'", "tell has no prefix on all either")
 
 -- history ignored
 world(); G.init(env)

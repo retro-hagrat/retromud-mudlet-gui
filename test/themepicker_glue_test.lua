@@ -17,7 +17,7 @@ end
 local function has(s, part, label) eq(type(s) == "string" and s:find(part, 1, true) ~= nil, true, label) end
 
 local said, saves, slot, env
-local NAMES = { "crypt", "perdow", "raji", "sosel", "welstar", "wysoom" }
+local NAMES = { "crypt", "perdow", "raji", "sosel", "welstar", "wood", "wysoom" }
 
 local function world(opts)
     opts = opts or {}
@@ -34,7 +34,7 @@ local function world(opts)
     dofile(root .. "/src/scripts/themepicker/glue.lua")
     env = rmgui.core.makeEnv()
     env.say = function(m) said[#said + 1] = m end
-    env.settings = { theme = "perdow", mapTheming = true, cmdlineTheming = false }
+    env.settings = { theme = "wood", mapTheming = true, cmdlineTheming = false }
     if not opts.noUi then env.settings.ui = { hintShown = opts.hintShown or false } end
     env.saveSettings = function() saves = saves + 1 end
     return env
@@ -65,7 +65,7 @@ rmgui.themepicker.init(env)
 eq(obj("button") ~= nil, true, "button built")
 eq(obj("button").parent, slot, "button parent is the slot")
 eq(obj("button").tooltip, "Change the look", "tooltip")
-eq(nameOnButton(), "Perdow", "name before any theme apply")
+eq(nameOnButton(), "Wood", "name before any theme apply")
 eq(arrowCell() ~= nil and arrowCell():find("v", 1, true) ~= nil, true, "the arrow is in its own cell at the right, not after the name")
 eq(obj("button").text:find("v", 1, true), nil, "no arrow glued to the name")
 eq(obj("arrow").parent, obj("button"), "the arrow label is a child of the button")
@@ -87,7 +87,7 @@ eq(nameOnButton(), "Welstar", "name per theme")
 ---------------------------------------------------------------- open: counts and geometry
 local before = counts()
 obj("button"):fireClick()
-eq(counts() - before, 8, "backdrop + panel + 6 rows")
+eq(counts() - before, 9, "backdrop + panel + 7 rows")
 eq(obj("backdrop") ~= nil and obj("panel") ~= nil, true, "backdrop and panel exist")
 local bd, pn = obj("backdrop"), obj("panel")
 eq(bd:get_x() + bd:get_y(), 0, "backdrop at origin")

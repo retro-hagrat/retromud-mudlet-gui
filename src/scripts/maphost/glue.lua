@@ -53,21 +53,29 @@ local function hasMap()
     return not ok or v ~= false
 end
 
+-- A restyle or a new layout can leave a panel label above the map widget, and then the map draws nothing and takes
+-- no clicks (seen live). The widget is raised again each time.
+local function raiseMap()
+    local w = adopted or mapper
+    if w then pcall(w.raise, w) end
+end
+
 local function refresh()
-    if adopted then return end
+    if adopted then raiseMap() return end
     local slot = slotOf()
     if not slot then return end
     if tryAdopt(slot) then
         del(mapper); del(holder); mapper, holder = nil, nil
+        raiseMap()
         return
     end
-    if mapper then return end
+    if mapper then raiseMap() return end
     if hasMap() then
         del(holder); holder = nil
         local ok, m = pcall(function()
             return Geyser.Mapper:new({ name = MAPPER, x = 0, y = 0, width = "100%", height = "100%" }, slot)
         end)
-        if ok then mapper = m end
+        if ok then mapper = m; raiseMap() end
     elseif not holder then
         local ok, l = pcall(function()
             return Geyser.Label:new({ name = HOLDER, x = 0, y = 0, width = "100%", height = "100%" }, slot)
@@ -80,7 +88,7 @@ function M.init(e)
     M.teardown()
     env = e
     M.env_ = e
-    pcall(rmgui.theme.register, "maphost.placeholder", function(c) ctx = c; drawHolder() end)
+    pcall(rmgui.theme.register, "maphost.placeholder", function(c) ctx = c; drawHolder(); raiseMap() end)
     for _, ev in ipairs(EVENTS) do
         local ok, id = pcall(env.registerEvent, ev, function() refresh() end)
         if ok and id then ids[#ids + 1] = id end

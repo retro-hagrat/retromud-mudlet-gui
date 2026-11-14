@@ -402,6 +402,13 @@ gfn("appendBuffer", function(win)
     if c and c.appendBuffer then c:appendBuffer() end
 end)
 gfn("copy", function() F.copied = F.currentLine end)
+-- copy2decho and decho: the text of the line with colour tags, written to a console without a line end.
+-- Like Mudlet, decho strips only real colour tags and leaves other angle brackets (<chat>) alone.
+gfn("copy2decho", function() return "<0,255,0:0,0,0>" .. F.currentLine .. "<r>" end)
+gfn("decho", function(win, text)
+    local c = F.objects[win]
+    if c and c.echo then c:echo((tostring(text):gsub("<%d+,%d+,%d+:%d+,%d+,%d+>", ""):gsub("<r>", ""))) end
+end)
 gfn("getCurrentLine", function() return F.currentLine end)
 gfn("deleteLine", function() F.currentLine = ""; F.lineDeleted = true end)
 gfn("selectCurrentLine", function() return true end)

@@ -5,7 +5,7 @@ local S = rmgui.settings
 function S.defaults()
     return {
         version = 1,
-        theme = "perdow",
+        theme = "wood",
         mapTheming = true,
         cmdlineTheming = false,
         layout = { mode = "auto" },

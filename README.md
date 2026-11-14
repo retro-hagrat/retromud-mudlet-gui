@@ -31,7 +31,7 @@ You need Java and [Muddler](https://github.com/demonnic/muddler/releases). The `
 The GUI works in a live Mudlet profile. It has these parts:
 
 - The frame: a status bar and two columns.
-- Six planet themes.
+- Seven themes: six planet themes and the default `wood` theme.
 - Health bars (HP, SP, EP) with the numbers on the bars.
 - A party panel.
 - A chat panel with tabs and a font size control.
@@ -65,10 +65,10 @@ The package adds these commands. Type them in the Mudlet command line.
 
 ## Themes
 
-A theme sets the colors, the font sizes, and the pictures of the GUI. To change the theme, click the theme button at the top right of the status bar and pick a planet. You can also type these commands:
+A theme sets the colors, the font sizes, and the pictures of the GUI. To change the theme, click the theme button at the top right of the status bar and pick a theme. The default theme is `wood`: a black background with thin pixel wood borders on the buttons, the tabs and the status bar, and amber trim. The panels have no border. You can also type these commands:
 
     rgui theme            list the themes and show the active one
-    rgui theme <name>     switch theme (welstar, crypt, sosel, wysoom, raji, perdow)
+    rgui theme <name>     switch theme (wood, welstar, crypt, sosel, wysoom, raji, perdow)
     rgui theme reload     read your theme files again and apply the active theme
     rgui layout wide|compact|auto
 
@@ -117,7 +117,7 @@ The GUI stretches the frame of a picture around the text. The middle of the pict
 
 ## Make new theme art
 
-The pictures of the six built-in themes come from the script `tools/theme-art/generate.py`. The script asks the Runware image service for each picture, then cleans it up into pixel art. You only need this if you want to make or change the art of a built-in theme. To change the pictures for yourself, use the files in `retromud-gui-theme/` (see "Change the pictures").
+The pictures of the six planet themes come from the script `tools/theme-art/generate.py`. The script asks the Runware image service for each picture, then cleans it up into pixel art. You only need this if you want to make or change the art of a planet theme. The `wood` pictures were made this way, with a thin frame (see `THIN` in the script). The script also writes a `wood/panel.png`, because it cuts the status bar from it. Delete that file afterward, so that the panels stay without a border. To change the pictures for yourself, use the files in `retromud-gui-theme/` (see "Change the pictures").
 
 You need Python 3 and the Pillow library, and a Runware API key. Put the key in the environment variable `RUNWARE_API_KEY`. Do not write the key in a file, and do not commit it.
 
@@ -129,7 +129,7 @@ Run all commands from the repository root:
     python3 tools/theme-art/generate.py --from-raw                # redo the cleanup, no API call
     python3 tools/theme-art/generate.py --derive-tabs             # rebuild tab.png and tabActive.png from button.png
 
-Without `--theme` and `--role`, the script makes every picture. The theme names are `welstar`, `crypt`, `sosel`, `wysoom`, `raji`, and `perdow`. The role names are `window`, `panel`, `statusbar`, `button`, `tab`, and `tabActive`. The same seed gives a similar picture, so use `--seed` to try again with another one.
+Without `--theme` and `--role`, the script makes every picture. The theme names are `wood`, `welstar`, `crypt`, `sosel`, `wysoom`, `raji`, and `perdow`. The role names are `window`, `panel`, `statusbar`, `button`, `tab`, and `tabActive`. The same seed gives a similar picture, so use `--seed` to try again with another one.
 
 The script writes the pictures to `src/resources/themes/<theme>/<role>.png`. It keeps the raw downloads in `tmp/theme-art-raw/`, which git ignores. To try a picture without replacing the real one, add `--out <folder>`.
 

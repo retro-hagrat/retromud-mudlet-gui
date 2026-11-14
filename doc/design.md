@@ -202,7 +202,7 @@ The GUI must be easy to customize, also for players who do not write code. A pla
 ### Rules for our code
 
 1. All styling comes from one theme table. No module contains a color, a font name, or an image path. The `layout` module reads the table and applies it.
-2. The GUI ships six presets, one for each planet: `welstar`, `crypt`, `sosel`, `wysoom`, `raji`, and `perdow` (the default). Theming is on by default.
+2. The GUI ships seven presets: one for each planet (`welstar`, `crypt`, `sosel`, `wysoom`, `raji`, and `perdow`) and `wood`, which is the default. Theming is on by default.
 3. Text always sits on a solid or semi-transparent background, so that an image cannot make it unreadable.
 4. A theme can be applied again without a restart, so that the player sees a change at once.
 

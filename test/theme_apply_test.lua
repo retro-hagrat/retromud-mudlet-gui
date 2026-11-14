@@ -26,7 +26,7 @@ local function anyHas(list, part, label)
     eq(f, true, label)
 end
 
-local NAMES = { "welstar", "crypt", "sosel", "wysoom", "raji", "perdow" }
+local NAMES = { "welstar", "crypt", "sosel", "wysoom", "raji", "perdow", "wood" }
 
 local function fresh()
     for _, n in ipairs({ "a", "b", "c", "x", "y" }) do T.unregister(n) end
@@ -274,9 +274,9 @@ end
 
 ---------------------------------------------------------------- list, active
 local l = T.list()
-eq(#l, 6, "list has six")
+eq(#l, 7, "list has seven")
 eq(l[1].name, "crypt", "list sorted: first")
-eq(l[6].name, "wysoom", "list sorted: last")
+eq(l[7].name, "wysoom", "list sorted: last")
 eq(l[1].title, T.presets.crypt.title, "list title")
 eq(l[1].description, T.presets.crypt.description, "list description")
 
@@ -288,10 +288,10 @@ local r1, r2 = T.command("", e, st)
 eq(r1, true, "empty command ok")
 eq(r2, false, "empty command changes nothing")
 has(e.said[1], "none", "empty shows no active theme")
-eq(#e.said, 7, "empty shows active line and six themes")
+eq(#e.said, 8, "empty shows active line and seven themes")
 e.said = {}
 T.command("list", e, st)
-eq(#e.said, 6, "list shows six")
+eq(#e.said, 7, "list shows seven")
 e.said = {}
 r1, r2 = T.command("reload", e, st)
 eq(r1, false, "reload without active theme")

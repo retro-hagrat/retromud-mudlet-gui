@@ -183,6 +183,14 @@ eq(after.handlers, before.handlers, "reload: no duplicate handlers")
 rmgui.buttons.teardown()
 pristine("reload then teardown")
 F.restore()
+-- a mapper without rmap.api that is already on when the GUI loads: the label and the first click follow rmap.mapping
+rmgui.buttons.teardown()
+env = world(); rmap = { mapping = true }; F.expanded = {}
+rmgui.buttons.init(env)
+eq(L("mapToggle").text, "stop map", "mapper already on, no api: label says stop map")
+L("mapToggle"):fireClick()
+eq(expanded(), "rmap stop", "first click stops a mapper that was already on")
+
 print(("buttons_glue: %d checks, %d failed"):format(count, fails))
 if COVER then
     debug.sethook()
