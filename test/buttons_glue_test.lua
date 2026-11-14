@@ -72,7 +72,7 @@ calls = {}
 L("mapToggle"):fireClick(); rmap.mapping = true; L("mapToggle"):fireClick()
 eq(table.concat(calls, ","), "start,stop", "toggle via isMapping")
 eq(expanded(), "", "no alias with api")
-eq(L("mapToggle").text, "map off", "api that never raises an event: label read back from isMapping")
+eq(L("mapToggle").text, "map on", "api that never raises an event: label read back from isMapping (fake reports mapping = true)")
 F.fire("rmap.onMapping", true)
 eq(L("mapToggle").text, "map on", "event on")
 eq(L("mapToggle").textColor, "col-button", "event redraw colour")
