@@ -86,25 +86,37 @@ A theme has these groups of keys. The names are a first proposal.
    - `hp`, `sp`, `ep`: the colours of the three gauges.
    - `map`: a table with `background` and `exits`.
 3. `fonts`: `family` (can be empty to use the default), `size` for normal text, and `sizeSmall`.
-4. `images`: a table that maps a role to a file name, or to `false` for no image. The roles are `window`, `statusbar`, `panel`, `button`, `tab`, and `tabActive`. The first version stretches an image with a `border-image` stylesheet, which keeps the text on top. A mode that draws an image at its own size with `setBackgroundImage` is not in the first version.
-5. `imageOpacity` is not in the first version. Qt stylesheets have no opacity, and the research did not find one for a label. A player who wants a softer image edits the image. A later version can put a half-transparent layer over the image.
-6. `cmdline`: a table with `background` and `text`. The module uses it only when the player turns it on.
+4. `images`: a table that maps a role to a file name, or to `false` for no image. The roles are `window`, `statusbar`, `panel`, `button`, `tab`, and `tabActive`. Section 6 describes how an image is drawn.
+5. `imageScale`: a whole number of 1 or more, 2 by default. It is the factor by which an image is shown larger than its pixels. It keeps pixel art sharp.
+6. `imageOpacity` is not in the first version. Qt stylesheets have no opacity, and the research did not find one for a label. A player who wants a softer image edits the image. A later version can put a half-transparent layer over the image.
+7. `cmdline`: a table with `background` and `text`. The module uses it only when the player turns it on.
 
 Each role gets its stylesheet from a pure function. The function takes the theme and the role and returns a string. Tests can check this function without Mudlet.
 
-## 6. Names of the files that the player can add
+## 6. Images: names, sizes, and how they are drawn
 
-The player puts these PNG files in the theme folder. The names are a first proposal.
+The player puts PNG files with these names in the theme folder. The presets ship the same files in `themes/<theme name>/`. The names are a first proposal.
 
-| File | Role |
-|---|---|
-| `window.png` | The background of the sidebar column |
-| `statusbar.png` | The status bar |
-| `panel.png` | The panels |
-| `button.png` | The buttons |
-| `tab.png` | The tabs of the chat panel |
+The art is pixel art. A plain stretch smears it, which we saw in Mudlet. So every image except the window tile is a nine-slice image. The four corners keep their pixels and are shown at `imageScale` times their size. The edges and the middle repeat. The stylesheet is `border-image: url("<file>") <slices> round round;` with a `border-width` of the slices times `imageScale`.
 
-An image that needs text uses the mode `stretch`. A file of the player is always used with the mode of its role.
+| File | Role | Art size (px) | Slice (px) | Drawn as |
+|---|---|---|---|---|
+| `window.png` | The sidebar background | 128 x 128 | none | A tile at its own size. The art is 64 x 64 and is saved at 2 times size, because Qt cannot scale a tile |
+| `panel.png` | The panels | 32 x 32 | 8 on all sides | Nine-slice |
+| `statusbar.png` | The status bar | 32 x 16 | 4 top and bottom, 8 left and right | Nine-slice |
+| `button.png` | The buttons | 24 x 24 | 6 on all sides | Nine-slice |
+| `tab.png` | An inactive tab | 24 x 16 | 4 on all sides | Nine-slice |
+| `tabActive.png` | The active tab | 24 x 16 | 4 on all sides | Nine-slice |
+
+Rules for the art:
+
+1. The four corners must match. The generator mirrors the image to make sure of this.
+2. The middle must be plain and close to the base colours of the preset, because text sits right on it.
+3. The palette has at most 12 colours.
+4. The window tile must have no seam. The generator builds it from one mirrored quadrant.
+5. A button with an image has no hover look. A later version can ship a second image for it.
+
+THEME-020. Every image that ships with a preset must pass a text contrast check. The ratio between the text colour of its role and every pixel of the area where text can sit must be at least 4.5 to 1. The generator makes this check (section 7a). The module does not check the images of a player.
 
 ## 7. The apply function
 
@@ -121,6 +133,28 @@ The function `rmgui.theme.apply(name)` does these steps in order:
 9. Raise `rmgui.onTheme` (THEME-017).
 
 An element registers itself in its `init()` with `rmgui.theme.register(name, fn)`. It removes itself in its `teardown()`. This keeps a new module free of special code in the theme module.
+
+## 7a. Making the preset images
+
+The script `tools/theme-art/generate.py` makes the images with the Runware image API. It needs the key in the environment variable `RUNWARE_API_KEY`. It does these steps for each theme and role:
+
+1. It builds a prompt from a shared pixel-art style, the hex colours of the preset (read from `presets.lua`), the motif of the planet, and the role text from section 6.
+2. It asks Runware for the image at a large size (a multiple of 64) and keeps the raw file in `tmp/theme-art-raw/`.
+3. It shrinks the image to the art size with box averaging, cuts the palette to 12 colours, and mirrors it so that the corners match. It builds the window tile from one quadrant and saves it at 2 times size.
+4. It reports the lowest text contrast (THEME-020) and warns below 4.5 to 1.
+
+The command `generate.py --dry-run` prints the prompts, and `--selftest` checks the cleanup without the network. The options `--theme`, `--role`, and `--seed` make one image again.
+
+The motifs follow the planet style guide:
+
+| Theme | Motif |
+|---|---|
+| `welstar` | White marble and gold trim, paladin heraldry with shields, swords and laurel wreaths, fluted columns |
+| `crypt` | Vampire crypt, black-violet stone and bone, blood crimson accents, small bats and fangs, stalactite arches |
+| `sosel` | Volcano and jungle, black basalt with glowing lava cracks, dinosaur claw and scale patterns, fern leaves |
+| `wysoom` | Deep ocean, coral and polished shells, shark fins and shark teeth, rolling waves |
+| `raji` | Sky and djinn, Arabian arches and filigree, drifting clouds and stars, lamp and smoke swirls, gold trim |
+| `perdow` | Darkness and carnivorous plants, thorny vines, venus flytrap jaws, pitcher plants with dripping toxic green, crimson flower maws |
 
 ## 8. Look of an `Adjustable.Container`
 
@@ -147,6 +181,9 @@ A theme can be a separate package. The package holds a `theme.lua` file and its 
 4. Do spaces in the path of an image work in `border-image`? We did not test this.
 5. Does `changeMenuStyle("light")` of an `Adjustable.Container` match the `welstar` preset? We did not look at the result.
 6. Is `rgui` a good alias prefix?
+7. Does the nine-slice stylesheet look right at `imageScale` 2 in Mudlet? The earlier test showed crisp corners, and the test of the stylesheet that the code now builds is not confirmed yet.
+8. Does `background-repeat: repeat` tile the window image in Mudlet? We did not confirm it.
+9. Do the images that Runware makes look like pixel art after the cleanup? We have not run the script against the API yet.
 
 ## Appendix A: the six presets
 

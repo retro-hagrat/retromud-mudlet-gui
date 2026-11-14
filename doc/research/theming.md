@@ -46,6 +46,17 @@ We used made-up PNG files of 96 by 48 pixels.
 
 The stylesheet `QLabel{border-image: url("<path>"); color: white;}` stretches the image over the whole label. The text of the label shows on top of the image. This is the right way to make a background that needs text.
 
+### 3a. Pixel art and nine-slice
+
+We tested a made-up 24 by 24 pixel frame on four labels. The player looked at a screenshot.
+
+1. A plain `border-image` stretched the whole image over a wide label. The pixels were smeared.
+2. A nine-slice stylesheet (`border-image: url(...) 6 6 6 6 stretch stretch; border-width: 6px;`) kept a thin crisp border.
+3. The same with `repeat repeat` gave a crisp border and a tiled middle.
+4. A slice of 4 pixels drawn with `border-width: 12px` and `round round` gave a thick border that stayed sharp.
+
+So pixel art needs nine-slice images that the code shows at a whole-number scale. This is why the theme design has `imageScale` and the art contract in `doc/spec/theming.md`. We tested the exact stylesheet that the code builds, with the `window` tile, only after this. The result is open question 7 and 8 in the spec.
+
 ### 4. Restyling an `Adjustable.Container`
 
 1. The container keeps its parts as fields: `adjLabel` (the frame and the title), `minimizeLabel`, `exitLabel`, and others. Each is a `Geyser.Label`.

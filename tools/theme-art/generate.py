@@ -48,6 +48,8 @@ ROLES = {
         "an active tab, 24x16 pixels, 4 pixel corners, bright accent color on the top edge, slightly lighter plain flat center"),
 }
 SLICE = {"window": None, "panel": 8, "statusbar": 4, "button": 6, "tab": 4, "tabActive": 4}
+# Qt draws a tile at its own size, so the window tile is saved pre-scaled (imageScale 2).
+PRESCALE = {"window": 2}
 
 
 def load_palettes():
@@ -103,7 +105,8 @@ def cleanup(img, role):
         full.paste(img, (0, 0)); full.paste(img.transpose(Image.FLIP_LEFT_RIGHT), (qw, 0))
         full.paste(img.transpose(Image.FLIP_TOP_BOTTOM), (0, qh)); full.paste(img.transpose(Image.ROTATE_180), (qw, qh))
         img = full
-    return img
+    k = PRESCALE.get(role, 1)
+    return img.resize((img.width * k, img.height * k), Image.NEAREST) if k > 1 else img
 
 
 def worst_contrast(img, role, theme_pal):
@@ -134,6 +137,8 @@ def selftest():
         src = Image.new("RGB", (gw, gh))
         src.putdata([(rnd.randrange(256), rnd.randrange(256), rnd.randrange(256)) for _ in range(gw * gh)])
         out = cleanup(src, role)
+        k = PRESCALE.get(role, 1)
+        w, h = w * k, h * k
         assert out.size == (w, h), (role, out.size)
         assert len(set(out.getdata())) <= COLORS, (role, "too many colours")
         if "x" in axes: assert all(out.getpixel((x, y)) == out.getpixel((w - 1 - x, y)) for x in range(w) for y in range(h)), (role, "x symmetry")
