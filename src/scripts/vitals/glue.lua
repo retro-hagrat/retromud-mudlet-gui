@@ -23,8 +23,19 @@ local function draw(g, key, label, d)
     end
 end
 
+-- before the first prompt the labels say "HP --" so the panel is never blank
+local function drawEmpty()
+    for _, k in ipairs(KEYS) do
+        local l = V.labels and V.labels[k[1]]
+        if l then
+            local text = k[2] .. " --"
+            pcall(function() if V.textHex then l:echo(text, V.textHex) else l:echo(text) end end)
+        end
+    end
+end
+
 local function drawAll()
-    if not V.last then return end
+    if not V.last then drawEmpty() return end
     for _, k in ipairs(KEYS) do
         local g = V.gauges and V.gauges[k[1]]
         if g then pcall(draw, g, k[1], k[2], V.last) end

@@ -65,6 +65,10 @@ for _, k in ipairs({ "hp", "sp", "ep" }) do
     eq(l:get_y(), g:get_y(), k .. " label and bar share a row")
 end
 eq(#F.triggers, 1, "one trigger")
+eq(label("hp").text, "HP --", "before the first prompt the label is not blank")
+rmgui.theme.apply("welstar", env, {})
+eq(label("hp").text, "HP --", "placeholder survives a theme change")
+eq(label("hp").textColor, rmgui.theme.textColor("panel", rmgui.theme.resolve("welstar")), "placeholder is in the theme text colour")
 F.feedLine(PROMPT)
 eq(label("hp").text, "HP 296/296", "hp text")
 for _, k in ipairs({ "hp", "sp", "ep" }) do -- after a real draw, the bar still carries no text
