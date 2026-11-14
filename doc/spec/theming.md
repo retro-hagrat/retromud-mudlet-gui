@@ -162,6 +162,8 @@ The motifs follow the planet style guide:
 | `wysoom` | Deep ocean, coral and polished shells, shark fins and shark teeth, rolling waves |
 | `raji` | Sky and djinn, Arabian arches and filigree, drifting clouds and stars, lamp and smoke swirls, gold trim |
 
+The `sosel` button is a hand-made combination: the volcano top (and sides) of a generated image (seed 102, with the prompt of `ROLE_OVERRIDE`) and the thorn-and-leaf bottom band of an earlier image (seed 73). The player asked for a volcano on top and jungle at the bottom. The image file is the source of truth, because it cannot be rebuilt from one run of the script. The tabs of `sosel` follow from it with `--derive-tabs`.
+
 The `raji` status bar has its own role text in the script (`ROLE_OVERRIDE`): ornate Arabian brocade in gold thread on deep indigo, with the pattern in the top band, the bottom band, and the end caps. The player chose seed 42 out of four. Any other image can get an override in the same way.
 | `perdow` | Darkness and carnivorous plants, thorny vines, venus flytrap jaws, pitcher plants with dripping toxic green, crimson flower maws |
 

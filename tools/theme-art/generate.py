@@ -56,9 +56,10 @@ ROLE_OVERRIDE = {
         "and damask floral pattern in the style of woven brocade silk, deep indigo and violet cloth with gold thread, "
         "the pattern runs along the top band and the bottom band and fills the 16 pixel end caps, "
         "a plain flat dark center strip",
-    ("sosel", "button"): "a small square button frame, 48x48 pixels, 12 pixel corners, the TOP edge is a row of erupting "
-        "volcano peaks with glowing orange lava and dark smoke on black basalt, the BOTTOM edge is lush green jungle "
-        "leaves and ferns, plain flat dark center",
+    ("sosel", "button"): "a small square button frame, 48x48 pixels, the TOP QUARTER of the image is a wide row of three big "
+        "erupting volcano cones with bright orange and yellow lava fountains shooting up and glowing lava streams "
+        "running down the dark slopes, a red-orange glow in the sky, bold and clearly volcanoes, the BOTTOM QUARTER is "
+        "lush green jungle ferns and orange jungle plants, plain flat dark center",
     ("wysoom", "window"): "a seamless tileable ornamental pattern, 128x128 pixels, a dense symmetrical repeating motif of "
         "overlapping wave scales, scallop shells, small shark fins and branching coral, like an ornate carved "
         "tile, deep sea blue and teal with cyan highlights only, no pink, no red, no orange, "
