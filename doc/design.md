@@ -167,17 +167,18 @@ We read the mapper source on 2026-11-14. The commands `start`, `stop`, `where`, 
 
 Each module is a folder in `src/scripts/`. All state lives in the table `rmgui`.
 
-| Module | Job |
-|---|---|
-| `core` | The `rmgui` table, install and uninstall handlers, saved settings |
-| `layout` | Containers and borders. It saves the old border sizes and restores them on uninstall. See `doc/spec/layout.md` |
-| `vitals` | The prompt parser and the vitals gauges |
-| `theme` | Presets, merge, contrast, stylesheets, and image lookup (pure Lua, done). The apply function and the commands are not started. See `doc/spec/theming.md` |
-| `chat` | The chat engine (pure Lua, done) and the chat panel (not started). See `doc/spec/chat.md` |
-| `map-host` | Finds `rmap.map` and moves it into the layout |
-| `buttons` | The button bar |
+| Module | Job | State |
+|---|---|---|
+| `core` | The `rmgui` table, install and uninstall handlers, saved settings | `settings.lua` and `lifecycle.lua` are done (pure Lua). `gui.lua` is the old first status bar and is not wired to them yet |
+| `layout` | Containers and borders. It saves the old border sizes and restores them on uninstall. See `doc/spec/layout.md` | `calc.lua` (the size calculation) is done. The containers are not started |
+| `vitals` | The prompt parser and the vitals gauges | `parser.lua` is done. The gauges are not started |
+| `theme` | Presets, merge, contrast, stylesheets, image lookup, and the apply function with the `rgui theme` command. See `doc/spec/theming.md` | Done (pure Lua). No element is registered yet |
+| `statusbar` | The text of the status bar | `format.lua` is done. The label is not started |
+| `chat` | The chat engine and the chat panel. See `doc/spec/chat.md` | The engine is done. The panel is not started |
+| `map-host` | Finds `rmap.map` and moves it into the layout | Not started |
+| `buttons` | The button bar | Not started |
 
-Two modules exist today. `core` is in `src/scripts/core/gui.lua`. It contains the first status bar, and it does not yet follow the `init()` and `teardown()` pattern. `chat` holds the pure rule engine in `src/scripts/chat/`. We will split `core` when we add the other modules.
+The pure modules take everything that belongs to Mudlet through an `env` table, so plain `lua` tests them. The header comment of each file documents its `env` and its functions. The parts that create Mudlet objects (containers, gauges, labels, the chat miniconsole) are the next step. `./test/run.sh` runs all the tests.
 
 ## Install and uninstall
 

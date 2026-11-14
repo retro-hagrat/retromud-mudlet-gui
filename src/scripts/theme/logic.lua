@@ -16,7 +16,7 @@ end
 local function isColor(v)
     if type(v) ~= "table" or (#v ~= 3 and #v ~= 4) then return false end
     for i = 1, #v do
-        if type(v[i]) ~= "number" or v[i] < 0 or v[i] > 255 then return false end
+        if type(v[i]) ~= "number" or v[i] < 0 or v[i] > 255 or v[i] % 1 ~= 0 then return false end -- whole channels: the stylesheet formatter needs integers
     end
     return true
 end

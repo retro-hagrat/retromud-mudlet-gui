@@ -127,6 +127,8 @@ local cases = {
     { { colors = { accent = { 1, 2, 300 } } }, "not a colour", "channel above 255" },
     { { colors = { accent = { 1, -2, 3 } } }, "not a colour", "channel below 0" },
     { { colors = { accent = { 1, "x", 3 } } }, "not a colour", "channel not a number" },
+    { { colors = { accent = { 1.5, 2, 3 } } }, "not a colour", "fractional channel" },
+    { { colors = { accent = { 0 / 0, 2, 3 } } }, "not a colour", "NaN channel" },
     { { colors = 5 }, "colors: expected a table", "colors not a table" },
     { { fonts = { size = "big" } }, "fonts.size: expected a number", "font size string" },
     { { fonts = { size = 0 } }, "fonts.size: must be above 0", "font size zero" },
