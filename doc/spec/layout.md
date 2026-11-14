@@ -110,11 +110,11 @@ The module creates the objects in this order, so that panels sit on top of the b
 
 1. Unit tests in plain Lua, without Mudlet, for the size calculation: the column widths for a list of window widths, the limits, the 80 character rule, and the switch to the compact layout. The function must take the window width and the character width as arguments, and return the sizes.
 2. Tests by hand in Mudlet:
-   - the wide layout at 1920, 1366, and 1100 px;
-   - the switch to compact below the limit, and back;
-   - dragging a column edge with the mouse;
-   - the borders after `teardown()`;
-   - a swap of all six themes with the layout open;
+   - the wide layout at 1920, 1366, and 1100 px.
+   - the switch to compact below the limit, and back.
+   - dragging a column edge with the mouse.
+   - the borders after `teardown()`.
+   - a swap of all six themes with the layout open.
    - the layout with the mapper missing.
 
 ## 10. Open questions
