@@ -121,7 +121,7 @@ The module creates the objects in this order, so that panels sit on top of the b
 
 1. Which Mudlet function gives the width of a character in the main window? We think it is `calcFontSize("main")`. We did not test it.
 2. Does a label that fills a border area receive mouse events correctly? We did not test it.
-3. Is the compact threshold right, and should `auto` be the default?
+3. Is the compact threshold right, and is `auto` the right default?
 4. Do the containers keep the right order when the player drags them? The theme and the borders must stay correct.
 5. Does the gauge need its own image roles and stylesheet roles (front, back, text)? The theme code has no gauge role yet.
 6. How wide is the status bar text at the smallest column width? We must check that the room name and the area do not overflow.
