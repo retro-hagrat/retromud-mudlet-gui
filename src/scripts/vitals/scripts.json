@@ -1,3 +1,4 @@
 [
-  { "name": "parser", "isActive": "yes", "isFolder": "no" }
+  { "name": "parser", "isActive": "yes", "isFolder": "no" },
+  { "name": "glue", "isActive": "yes", "isFolder": "no" }
 ]

@@ -1,5 +1,5 @@
 [
   { "name": "settings", "isActive": "yes", "isFolder": "no" },
   { "name": "lifecycle", "isActive": "yes", "isFolder": "no" },
-  { "name": "gui", "isActive": "yes", "isFolder": "no" }
+  { "name": "env", "isActive": "yes", "isFolder": "no" }
 ]

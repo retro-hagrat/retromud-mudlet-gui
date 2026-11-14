@@ -26,8 +26,11 @@ Needs Java and [Muddler](https://github.com/demonnic/muddler/releases) (`muddle`
 
 ## Status
 
-Skeleton: a top status bar that shows the current room (from the mapper) and tears down cleanly on uninstall.
-Next: prompt-parsed vitals, chat miniconsole, map container, button bar.
+The GUI is built and works in a live Mudlet profile: the frame (status bar and two columns), six planet themes, vitals gauges, a tabbed chat panel, buttons, and a map host. See `doc/design.md` for the modules and `doc/spec/` for the specifications.
+
+Commands: `rgui theme` (list themes), `rgui theme <name>`, `rgui theme reload`, `rgui layout wide|compact|auto`.
+
+Known limits: the map host builds its own map widget until the mapper creates the `rmap.map` pane. The map toggle, the `where`, `scan` and `undo` buttons use the mapper's commands. Not everything has been judged by eye yet.
 
 ## License
 

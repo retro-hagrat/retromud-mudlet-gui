@@ -1,3 +1,4 @@
 [
-  { "name": "calc", "isActive": "yes", "isFolder": "no" }
+  { "name": "calc", "isActive": "yes", "isFolder": "no" },
+  { "name": "glue", "isActive": "yes", "isFolder": "no" }
 ]

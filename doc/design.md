@@ -167,18 +167,19 @@ We read the mapper source on 2026-11-14. The commands `start`, `stop`, `where`, 
 
 Each module is a folder in `src/scripts/`. All state lives in the table `rmgui`.
 
-| Module | Job | State |
+| Module | Job | Files |
 |---|---|---|
-| `core` | The `rmgui` table, install and uninstall handlers, saved settings | `settings.lua` and `lifecycle.lua` are done (pure Lua). `gui.lua` is the old first status bar and is not wired to them yet |
-| `layout` | Containers and borders. It saves the old border sizes and restores them on uninstall. See `doc/spec/layout.md` | `calc.lua` (the size calculation) is done. The containers are not started |
-| `vitals` | The prompt parser and the vitals gauges | `parser.lua` is done. The gauges are not started |
-| `theme` | Presets, merge, contrast, stylesheets, image lookup, and the apply function with the `rgui theme` command. See `doc/spec/theming.md` | Done (pure Lua). No element is registered yet |
-| `statusbar` | The text of the status bar | `format.lua` is done. The label is not started |
-| `chat` | The chat engine and the chat panel. See `doc/spec/chat.md` | The engine is done. The panel is not started |
-| `map-host` | Finds `rmap.map` and moves it into the layout | Not started |
-| `buttons` | The button bar | Not started |
+| `core` | The `rmgui` table, install and uninstall handlers, saved settings, and the real Mudlet `env` | `settings.lua`, `lifecycle.lua`, `env.lua` |
+| `theme` | Presets, merge, contrast, stylesheets, image lookup, the apply function, and the `rgui theme` command. See `doc/spec/theming.md` | `presets.lua`, `logic.lua`, `apply.lua` |
+| `layout` | The frame: status bar, two columns, and framed panels. It saves the old borders and restores them on uninstall. See `doc/spec/layout.md` | `calc.lua` (pure), `glue.lua` |
+| `statusbar` | The label in the top bar | `format.lua` (pure), `glue.lua` |
+| `vitals` | The prompt parser and the three gauges | `parser.lua` (pure), `glue.lua` |
+| `chat` | The engine, the router, and the tabbed chat panel. See `doc/spec/chat.md` | `rules.lua`, `engine.lua`, `router.lua` (pure), `glue.lua` |
+| `buttons` | The button grid that calls the mapper | `glue.lua` |
+| `maphost` | Puts the map in the map panel. It builds a fallback map widget until the mapper creates `rmap.map` | `glue.lua` |
+| `boot` | Builds the env, loads settings, registers the `rgui` aliases, and starts everything | `start.lua` |
 
-The pure modules take everything that belongs to Mudlet through an `env` table, so plain `lua` tests them. The header comment of each file documents its `env` and its functions. The parts that create Mudlet objects (containers, gauges, labels, the chat miniconsole) are the next step. `./test/run.sh` runs all the tests.
+The pure files take everything that belongs to Mudlet through an `env` table, so plain `lua` tests them. The glue files create the Mudlet objects, and `test/fake_mudlet.lua` stands in for Mudlet when they are tested. The header comment of each file documents its `env` and its functions. `./test/run.sh` runs all the tests.
 
 ## Install and uninstall
 
@@ -248,6 +249,8 @@ The pages are in the Sources list below. Items marked "summary" come from a tool
 7. Whether Mudlet has an official theme mechanism. We found none. `Geyser.StyleSheet` is a managed stylesheet helper, and we did not read its page.
 
 ## Testing
+
+Mudlet runs Lua 5.1, but the unit tests run on a newer Lua. Do not use functions that Lua 5.1 does not have, such as `math.tointeger`, `math.type`, `table.unpack`, or the `//` operator. Two such calls passed every unit test and failed only in a live Mudlet. `test/boot_test.lua` loads all scripts with `math.tointeger` and `math.type` removed to catch this. `utf8` exists in Mudlet and is used for status bar truncation.
 
 1. `test/` holds a stub of the Mudlet functions, in the same way as the mapper repository.
 2. The vitals parser has tests that use prompt lines from the mapper's `test/captures/`.

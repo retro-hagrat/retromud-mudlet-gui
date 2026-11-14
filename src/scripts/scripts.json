@@ -2,7 +2,10 @@
   {"name": "core", "isFolder": "yes", "isActive": "yes"},
   {"name": "theme", "isFolder": "yes", "isActive": "yes"},
   {"name": "layout", "isFolder": "yes", "isActive": "yes"},
-  {"name": "vitals", "isFolder": "yes", "isActive": "yes"},
   {"name": "statusbar", "isFolder": "yes", "isActive": "yes"},
-  {"name": "chat", "isFolder": "yes", "isActive": "yes"}
+  {"name": "vitals", "isFolder": "yes", "isActive": "yes"},
+  {"name": "chat", "isFolder": "yes", "isActive": "yes"},
+  {"name": "buttons", "isFolder": "yes", "isActive": "yes"},
+  {"name": "maphost", "isFolder": "yes", "isActive": "yes"},
+  {"name": "boot", "isFolder": "yes", "isActive": "yes"}
 ]

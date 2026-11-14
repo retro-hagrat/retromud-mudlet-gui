@@ -94,8 +94,8 @@ local function mergeRaw(saved)
             overlay(km, out.chat.keepInMain, rules, "chat.keepInMain.", problems)
         end, problems, "chat.")
     end, problems)
-    -- an integer-valued float would be written as 500.0
-    out.chat.maxLines = math.tointeger(out.chat.maxLines) or out.chat.maxLines
+    -- Mudlet runs Lua 5.1: no math.tointeger there, and a float prints as 500 anyway
+    if math.tointeger then out.chat.maxLines = math.tointeger(out.chat.maxLines) or out.chat.maxLines end
     return out, problems
 end
 

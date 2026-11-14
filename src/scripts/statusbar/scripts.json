@@ -1,3 +1,4 @@
 [
-  { "name": "format", "isActive": "yes", "isFolder": "no" }
+  { "name": "format", "isActive": "yes", "isFolder": "no" },
+  { "name": "glue", "isActive": "yes", "isFolder": "no" }
 ]

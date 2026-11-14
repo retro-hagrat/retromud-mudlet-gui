@@ -1,4 +1,6 @@
 [
   { "name": "rules", "isActive": "yes", "isFolder": "no" },
-  { "name": "engine", "isActive": "yes", "isFolder": "no" }
+  { "name": "engine", "isActive": "yes", "isFolder": "no" },
+  { "name": "router", "isActive": "yes", "isFolder": "no" },
+  { "name": "glue", "isActive": "yes", "isFolder": "no" }
 ]
