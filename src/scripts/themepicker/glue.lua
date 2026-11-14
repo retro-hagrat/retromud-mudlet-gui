@@ -65,12 +65,19 @@ local function drawButton()
     local b = st.button
     if not b then return end
     local ok, err = pcall(function()
-        -- the name is centred and the arrow sits at the far right, so it does not read as part of the name
-        local text = ("<table width='100%%' cellspacing='0' cellpadding='0'><tr><td width='15%%'></td><td align='center'>%s</td>"
-            .. "<td width='15%%' align='right'>v&nbsp;</td></tr></table>"):format(titleOf(activeName()))
-        if not st.ctx then b:echo(text) return end
+        -- the name is centred; the arrow is its own label at the far right (an HTML table is not stretched by a Mudlet label)
+        local ar = st.arrow
+        if not st.ctx then
+            b:echo(titleOf(activeName()), nil, "c")
+            if ar then ar:echo("v ", nil, "r") end
+            return
+        end
         b:setStyleSheet(plainStyle("surfaceAlt", "accent", st.ctx.theme))
-        b:echo(text, st.ctx.textColor("button"))
+        b:echo(titleOf(activeName()), st.ctx.textColor("button"), "c")
+        if ar then
+            ar:setStyleSheet("QLabel{background-color: transparent; border: none;}")
+            ar:echo("v ", st.ctx.textColor("button"), "r")
+        end
     end)
     if not ok then report("button", err) end
 end
@@ -146,13 +153,19 @@ local function build()
     if not ok or not slot then return end
     if st.button then
         if st.button.parent == slot then drawButton() return end -- the layout was rebuilt otherwise
-        del(st.button)
-        st.button = nil
+        del(st.arrow); del(st.button)
+        st.arrow, st.button = nil, nil
     end
     local made, b = pcall(Geyser.Label.new, Geyser.Label,
         { name = PREFIX .. "button", x = 0, y = 0, width = "100%", height = "100%" }, slot)
     if not made or not b then report("button", b) return end
     st.button = b
+    local m2, ar = pcall(Geyser.Label.new, Geyser.Label,
+        { name = PREFIX .. "arrow", x = "80%", y = 0, width = "20%", height = "100%" }, b)
+    if m2 and ar then
+        st.arrow = ar
+        pcall(ar.setClickCallback, ar, toggle)
+    end
     pcall(b.setClickCallback, b, toggle)
     pcall(b.setToolTip, b, "Change the look")
     drawButton()
@@ -186,7 +199,7 @@ end
 
 function P.teardown()
     close()
-    del(st.button)
+    del(st.arrow); del(st.button)
     if st.env then
         for _, id in ipairs(st.ids) do pcall(st.env.killEvent, id) end
     end

@@ -41,10 +41,8 @@ local function world(opts)
 end
 local function obj(n) return F.objects["rmgui.picker." .. n] end
 
-local function nameOnButton() -- the title inside the centred cell of the button markup
-    return (obj("button").text or ""):match("<td align='center'>(.-)</td>")
-end
-local function arrowCell() return (obj("button").text or ""):match("<td width='15%%?' align='right'>(.-)</td>") end
+local function nameOnButton() return obj("button").text end
+local function arrowCell() return obj("arrow") and obj("arrow").text end
 
 local function row(n) return obj("row." .. n) end
 local function counts() local c = F.counts() return c.objects end
@@ -69,7 +67,9 @@ eq(obj("button").parent, slot, "button parent is the slot")
 eq(obj("button").tooltip, "Change the look", "tooltip")
 eq(nameOnButton(), "Perdow", "name before any theme apply")
 eq(arrowCell() ~= nil and arrowCell():find("v", 1, true) ~= nil, true, "the arrow is in its own cell at the right, not after the name")
-eq(obj("button").text:find("Perdow v", 1, true), nil, "no arrow glued to the name")
+eq(obj("button").text:find("v", 1, true), nil, "no arrow glued to the name")
+eq(obj("arrow").parent, obj("button"), "the arrow label is a child of the button")
+eq(obj("arrow"):get_x() + obj("arrow"):get_width(), slot:get_x() + slot:get_width(), "the arrow label ends at the right edge")
 eq(hintCount(), 1, "hint said")
 eq(env.settings.ui.hintShown, true, "hint remembered")
 eq(saves, 1, "hint saved")
@@ -299,7 +299,7 @@ applyTheme("crypt")
 F.failOn = { ["Label:setStyleSheet"] = true }
 obj("button"):fireClick()
 eq(obj("panel"), nil, "failed panel is closed")
-eq(counts(), 2, "failed panel leaves nothing")
+eq(counts(), 3, "failed panel leaves nothing")
 has(said[#said], "panel:", "failed panel said")
 local n = #said
 obj("button"):fireClick()
@@ -308,7 +308,7 @@ F.failOn = nil
 -- row fails midway
 F.failOn = { ["Label:echo"] = true }
 obj("button"):fireClick()
-eq(counts(), 2, "failed row leaves nothing")
+eq(counts(), 3, "failed row leaves nothing")
 F.failOn = nil
 -- env failing
 world()
