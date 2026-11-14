@@ -37,34 +37,34 @@ Reasons:
 
 ### Container contract (proposed)
 
-1. The mapper creates an `Adjustable.Container` with the name `rm.map`. The `Geyser.Mapper` widget lives inside it.
+1. The mapper creates an `Adjustable.Container` with the name `rmap.map`. The `Geyser.Mapper` widget lives inside it.
 2. By default the container floats and the user can move it.
-3. The mapper raises the event `rm.onUiReady` with the container name as its argument, after it creates the container. It also raises the event again if it recreates the container.
-4. The GUI listens for `rm.onUiReady`. When the event arrives, the GUI moves the container into its own layout. It must also check at start up whether the container already exists, because the mapper can load first.
+3. The mapper raises the event `rmap.onUiReady` with the container name as its argument, after it creates the container. It also raises the event again if it recreates the container.
+4. The GUI listens for `rmap.onUiReady`. When the event arrives, the GUI moves the container into its own layout. It must also check at start up whether the container already exists, because the mapper can load first.
 5. The GUI moves the container with the Geyser method `changeContainer`. We did not verify that this method exists. Read the Geyser API before we write this code.
-6. The mapper must not call `setBorder*` for `rm.map`. The GUI owns the screen borders when it is present. A mapper setting decides if the mapper docks to a border when it runs alone.
+6. The mapper must not call `setBorder*` for `rmap.map`. The GUI owns the screen borders when it is present. A mapper setting decides if the mapper docks to a border when it runs alone.
 7. If the user uninstalls the GUI, the GUI gives the container back (floating) and does not delete it. If the user uninstalls the mapper, the GUI removes its own reference to the container and shows an empty slot.
 
 ### Version check (proposed)
 
-The mapper stores its version in `rm.version` (for example `"0.0.3"`). The GUI reads `getPackageInfo("retromud", "version")`. The contract has its own number, `rm.uiContract`, starting at 1. The GUI shows a message if the number is missing or too low.
+The mapper stores its version in `rmap.version` (for example `"0.0.3"`). The GUI reads `getPackageInfo("retromud", "version")`. The contract has its own number, `rmap.uiContract`, starting at 1. The GUI shows a message if the number is missing or too low.
 
 ## Events
 
-All events have the prefix `rm.` and come from the mapper. The GUI raises events with the prefix `rmgui.`.
+All events that come from the mapper have the prefix `rmap.`. The GUI raises events with the prefix `rmgui.`.
 
 | Event | Raised by | Arguments | Status |
 |---|---|---|---|
-| `rm.onRoom` | mapper | a table with `name`, `exits`, `lines`, `fingerprint` | exists |
-| `rm.onSegment` | mapper | the number of real lines in the block | exists |
-| `rm.onMoveFail` | mapper | none | exists |
-| `rm.onUiReady` | mapper | the container name | proposed |
-| `rm.onMoved` | mapper | the room id, the room name, and the area name, after the mapper resolved the position | proposed |
-| `rm.onMapping` | mapper | `true` or `false`, raised by `rmap start` and `rmap stop` | proposed |
-| `rm.onState` | mapper | the new sync state: `"SYNCED"`, `"PENDING"`, or `"UNSYNCED"` | proposed |
+| `rmap.onRoom` | mapper | a table with `name`, `exits`, `lines`, `fingerprint` | exists |
+| `rmap.onSegment` | mapper | the number of real lines in the block | exists |
+| `rmap.onMoveFail` | mapper | none | exists |
+| `rmap.onUiReady` | mapper | the container name | proposed |
+| `rmap.onMoved` | mapper | the room id, the room name, and the area name, after the mapper resolved the position | proposed |
+| `rmap.onMapping` | mapper | `true` or `false`, raised by `rmap start` and `rmap stop` | proposed |
+| `rmap.onState` | mapper | the new sync state: `"SYNCED"`, `"PENDING"`, or `"UNSYNCED"` | proposed |
 | `rmgui.onVitals` | GUI | a table with `hp`, `hpMax`, `sp`, `spMax`, `ep`, `epMax` | proposed |
 
-Important detail: the mapper raises `rm.onRoom` when its capture code sees a room block. This happens before the mapper decides where the player is. So `rm.onRoom` means "a room was shown", and it does not mean "the map position changed". The status bar can use it at first. The proposed event `rm.onMoved` fixes this. The mapper raises it after the tracker resolves the block to a room.
+Important detail: the mapper raises `rmap.onRoom` when its capture code sees a room block. This happens before the mapper decides where the player is. So `rmap.onRoom` means "a room was shown", and it does not mean "the map position changed". The status bar can use it at first. The proposed event `rmap.onMoved` fixes this. The mapper raises it after the tracker resolves the block to a room.
 
 Events tell the GUI that something changed. The GUI must not poll. To ask a question or to give a command, the GUI calls the API in the next section.
 
@@ -72,21 +72,21 @@ Events tell the GUI that something changed. The GUI must not poll. To ask a ques
 
 The status bar shows the room name and the sync state. It also shows the area name, but only in this case:
 
-1. Mapping is on. This means the player typed `rmap start`. The GUI learns this from `rm.onMapping`, and reads the start value with `rm.api.isMapping()`.
+1. Mapping is on. This means the player typed `rmap start`. The GUI learns this from `rmap.onMapping`, and reads the start value with `rmap.api.isMapping()`.
 2. The sync state is `"SYNCED"` or `"PENDING"`. In `"UNSYNCED"` state the last area can be wrong, so the GUI hides it.
 
 When the GUI hides the area, it also removes the gap. It does not leave an empty space in the bar. The room name stays visible when mapping is off, because it comes from the room text that the mapper captures.
 
-Where the area name comes from: the mapper puts each room into an area (`areaId()` in `src/50_builder.lua`). The mapper adds the area name to `rm.onMoved` and to `rm.api.position()`. The GUI makes no Mudlet map calls of its own.
+Where the area name comes from: the mapper puts each room into an area (`areaId()` in `src/50_builder.lua`). The mapper adds the area name to `rmap.onMoved` and to `rmap.api.position()`. The GUI makes no Mudlet map calls of its own.
 
 ## Mapper API (proposed)
 
-The mapper keeps its state in the global table `rm`. The public methods live in `rm.api`. Everything else in `rm` is private, and the GUI must not use it. In particular, the GUI must never write the map graph. Only the mapper's builder module does that.
+The mapper keeps its state in the global table `rmap`. The public methods live in `rmap.api`. Everything else in `rmap` is private, and the GUI must not use it. In particular, the GUI must never write the map graph. Only the mapper's builder module does that.
 
 ### Rules
 
-1. The GUI checks `rm and rm.api` before each call, and runs the call inside `pcall`. The mapper can be missing or old.
-2. `rm.api.version` is a whole number that starts at 1. The GUI reads it at start up. If the number is lower than the number that the GUI needs, the GUI shows a message and does not call the API. We raise the number when we remove or change a method. Adding a method does not raise it.
+1. The GUI checks `rmap and rmap.api` before each call, and runs the call inside `pcall`. The mapper can be missing or old.
+2. `rmap.api.version` is a whole number that starts at 1. The GUI reads it at start up. If the number is lower than the number that the GUI needs, the GUI shows a message and does not call the API. We raise the number when we remove or change a method. Adding a method does not raise it.
 3. A method does not raise an error in a normal case. On failure it returns `nil` and a reason string.
 4. A command method runs the same code as the matching `rmap` alias. The alias and the method must behave the same.
 5. A command that sends text to the game returns at once. The result arrives later, as an event.
@@ -96,23 +96,23 @@ The mapper keeps its state in the global table `rm`. The public methods live in 
 
 | Method | Returns | Backed by |
 |---|---|---|
-| `rm.api.state()` | `"SYNCED"`, `"PENDING"`, or `"UNSYNCED"` | `rm.track.state()` |
-| `rm.api.position()` | the room id, the room name, and the area name, or `nil` when the state is `"UNSYNCED"` | `rm.track.pos` and the Mudlet functions `getRoomName`, `getRoomArea`, and `getRoomAreaName` (not verified) |
-| `rm.api.isMapping()` | `true` or `false` | `rm.mapping` |
-| `rm.api.busy()` | the name of the running job (for example `"speedwalk"`), or `nil` | `rm.job` |
-| `rm.api.container()` | the name of the map container (`"rm.map"`), or `nil` when it does not exist | the map pane module |
+| `rmap.api.state()` | `"SYNCED"`, `"PENDING"`, or `"UNSYNCED"` | `rmap.track.state()` |
+| `rmap.api.position()` | the room id, the room name, and the area name, or `nil` when the state is `"UNSYNCED"` | `rmap.track.pos` and the Mudlet functions `getRoomName`, `getRoomArea`, and `getRoomAreaName` (not verified) |
+| `rmap.api.isMapping()` | `true` or `false` | `rmap.mapping` |
+| `rmap.api.busy()` | the name of the running job (for example `"speedwalk"`), or `nil` | `rmap.job` |
+| `rmap.api.container()` | the name of the map container (`"rmap.map"`), or `nil` when it does not exist | the map pane module |
 
 ### Commands
 
 | Method | Same as | Result |
 |---|---|---|
-| `rm.api.start()` | `rmap start` | `true` |
-| `rm.api.stop()` | `rmap stop` | `true` |
-| `rm.api.where()` | `rmap where` | `true`, or `nil` and a reason when the mapper is busy |
-| `rm.api.scan()` | `rmap scan` | `true`, or `nil` and a reason when the mapper is busy |
-| `rm.api.undo()` | `rmap undo` | `true`, or `nil` and a reason when nothing can be undone |
+| `rmap.api.start()` | `rmap start` | `true` |
+| `rmap.api.stop()` | `rmap stop` | `true` |
+| `rmap.api.where()` | `rmap where` | `true`, or `nil` and a reason when the mapper is busy |
+| `rmap.api.scan()` | `rmap scan` | `true`, or `nil` and a reason when the mapper is busy |
+| `rmap.api.undo()` | `rmap undo` | `true`, or `nil` and a reason when nothing can be undone |
 
-The busy check for `where` and `scan` uses the existing guard `rm.canRun()`. This guard refuses the command while the mapper follows someone or runs another job.
+The busy check for `where` and `scan` uses the existing guard `rmap.canRun()`. This guard refuses the command while the mapper follows someone or runs another job.
 
 ### Not in the first version
 
@@ -122,7 +122,7 @@ The busy check for `where` and `scan` uses the existing guard `rm.canRun()`. Thi
 
 ### Notes on the backing code
 
-We read the mapper source on 2026-11-14. The commands `start`, `stop`, `where`, `scan`, and `undo` exist as `rm.commands.*` and print their result with `rm.out`. They return nothing today. The API methods must wrap them and return a value, or the commands must change. The mapper has no code yet that raises `rm.onMoved` or `rm.onState`. The tracker is the right place for both, because it owns the sync state.
+We read the mapper source on 2026-11-14. The commands `start`, `stop`, `where`, `scan`, and `undo` exist as `rmap.commands.*` and print their result with `rmap.out`. They return nothing today. The API methods must wrap them and return a value, or the commands must change. The mapper has no code yet that raises `rmap.onMoved` or `rmap.onState`. The tracker is the right place for both, because it owns the sync state.
 
 ## Vitals
 
@@ -137,17 +137,17 @@ We read the mapper source on 2026-11-14. The commands `start`, `stop`, `where`, 
 ### Packages
 
 1. The project has two packages. `retromud` is the mapper. `retromud-gui` is the GUI. We keep the name `retromud` for the mapper, because a rename breaks existing installs.
-2. The GUI lists `retromud` in `dependencies`. The two packages talk only through events and through `rm.api`.
+2. The GUI lists `retromud` in `dependencies`. The two packages talk only through events and through `rmap.api`.
 3. We do not make a third package for shared code. The Mudlet maintainers say that a little duplicated code is not a problem. If both packages need the same small helper, each package keeps its own copy.
 
 ### Global names
 
-1. All scripts in a Mudlet profile share one Lua environment. So each package owns exactly one global table. The mapper owns `rm`. The GUI owns `rmgui`. A package must not add any other global name.
-2. The GUI never reads or changes `rm`, except through `rm.api`. The mapper never reads or changes `rmgui`.
+1. All scripts in a Mudlet profile share one Lua environment. So each package owns exactly one global table. The mapper owns `rmap`. The GUI owns `rmgui`. A package must not add any other global name.
+2. The GUI never reads or changes `rmap`, except through `rmap.api`. The mapper never reads or changes `rmgui`.
 3. Each module of the GUI is a sub-table of `rmgui`. Examples are `rmgui.core`, `rmgui.layout`, `rmgui.vitals`, `rmgui.chat`, `rmgui.theme`, and `rmgui.settings`. A part of a module is a sub-table of the module. The chat engine is `rmgui.chat.engine`. Its data is `rmgui.chat.rules`.
-4. Events use the same prefixes. The mapper raises events that start with `rm.`. The GUI raises events that start with `rmgui.`.
+4. Events use the same prefixes. The mapper raises events that start with `rmap.`. The GUI raises events that start with `rmgui.`.
 5. Geyser objects, triggers, and timers have names that start with `rmgui.`. Mudlet reuses an object that has the same name, so a name must be unique.
-6. A script that is not part of a package must not use the names `rm` or `rmgui`. We cannot enforce this. We can only choose names that are unlikely to clash.
+6. A script that is not part of a package must not use the names `rmap` or `rmgui`. We cannot enforce this. We can only choose names that are unlikely to clash.
 
 ### Files and modules
 
@@ -159,8 +159,9 @@ We read the mapper source on 2026-11-14. The commands `start`, `stop`, `where`, 
 
 ### Limits
 
-1. Another package that uses the global names `rm` or `rmgui` clashes with ours. We cannot prevent this.
-2. The names `rm` and `rmgui` are short. A rename is cheap now and costly later. We keep them for now.
+1. Another package that uses the global names `rmap` or `rmgui` clashes with ours. We cannot prevent this.
+2. No name of ours is `rm`. Wizards use the game command `rm` to delete files, so we avoid that name in code, aliases, and events. The mapper once had an alias with that name. It is now `rmap`.
+3. The names `rmap` and `rmgui` are short. A rename is cheap now and costly later. We keep them for now.
 
 ## Modules
 
@@ -172,7 +173,7 @@ Each module is a folder in `src/scripts/`. All state lives in the table `rmgui`.
 | `layout` | Containers and borders. It saves the old border sizes and restores them on uninstall |
 | `vitals` | The prompt parser and the vitals gauges |
 | `chat` | The chat engine (pure Lua, done) and the chat panel (not started). See `doc/spec/chat.md` |
-| `map-host` | Finds `rm.map` and moves it into the layout |
+| `map-host` | Finds `rmap.map` and moves it into the layout |
 | `buttons` | The button bar |
 
 Two modules exist today. `core` is in `src/scripts/core/gui.lua`. It contains the first status bar, and it does not yet follow the `init()` and `teardown()` pattern. `chat` holds the pure rule engine in `src/scripts/chat/`. We will split `core` when we add the other modules.
@@ -248,7 +249,7 @@ The pages are in the Sources list below. Items marked "summary" come from a tool
 
 1. Does `changeContainer` move an `Adjustable.Container` with its saved layout? Verify in Mudlet.
 2. Does Mudlet install packages that `dependencies` lists? Test with a built package.
-3. Where in the tracker does the mapper raise `rm.onMoved` and `rm.onState`? Define it with the mapper changes.
+3. Where in the tracker does the mapper raise `rmap.onMoved` and `rmap.onState`? Define it with the mapper changes.
 4. What does the vitals parser do for a prompt that has no Hp, Sp, or Ep values? Check `help prompt` in the game.
 
 ## Related documents

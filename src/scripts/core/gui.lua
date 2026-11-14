@@ -36,8 +36,8 @@ function rmgui.start()
   rmgui.teardown()
   rmgui.build()
   rmgui.handlers = {
-    -- rm.onRoom is raised by the mapper package (retromud-mudlet-mapper)
-    registerAnonymousEventHandler("rm.onRoom", function(_, room) rmgui.setRoom(room.name) end),
+    -- rmap.onRoom is raised by the mapper package (retromud-mudlet-mapper)
+    registerAnonymousEventHandler("rmap.onRoom", function(_, room) rmgui.setRoom(room.name) end),
     registerAnonymousEventHandler("sysUninstallPackage", function(_, pkg)
       if pkg == NAME then rmgui.teardown() end
     end),

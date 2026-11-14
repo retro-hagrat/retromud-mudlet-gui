@@ -49,7 +49,7 @@ These sources were weaker. Some looked auto-generated. Treat them as hints and t
 ## How we apply the guidelines
 
 1. The package keeps all state in the table `rmgui`. A new module adds a field to this table. It does not add a global name.
-2. The GUI and the mapper talk only through events. The mapper raises `rm.onRoom`. The GUI listens for it. The GUI must work when the mapper is missing, and it must say so on screen.
+2. The GUI and the mapper talk only through events. The mapper raises `rmap.onRoom`. The GUI listens for it. The GUI must work when the mapper is missing, and it must say so on screen.
 3. The GUI detects the mapper with `getPackageInfo("retromud", "version")`. The call returns an empty string when the package is not installed.
 4. Every GUI element has a unique name that starts with `rmgui.`.
 5. Sizes use percentages, except for fixed bar heights.

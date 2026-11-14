@@ -1,7 +1,7 @@
 # RetroMUD GUI for Mudlet
 
 Geyser GUI for [RetroMUD](https://www.retromud.org). Works with, but does not require,
-[retromud-mudlet-mapper](../retromud-mudlet-mapper): the two talk only through events (`rm.onRoom`).
+[retromud-mudlet-mapper](../retromud-mudlet-mapper): the two talk only through events (`rmap.onRoom`).
 
 ## Install
 
