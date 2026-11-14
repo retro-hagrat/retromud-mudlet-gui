@@ -37,6 +37,7 @@ local function setup(withSlot)
     V.init(env)
 end
 local function gauge(k) return F.objects["rmgui.vitals." .. k] end
+local function label(k) return F.objects["rmgui.vitals." .. k .. "label"] end -- the numbers live beside the bar, not on it
 local function mod() -- only this module's things
     local n = 0
     for _, o in ipairs(F.objectList) do if o.name:find("rmgui.vitals.", 1, true) == 1 then n = n + 1 end end
@@ -56,10 +57,20 @@ eq(rmgui.core.state().order[#rmgui.core.state().order], "vitals", "registered wi
 setup(true)
 eq(gauge("hp") and gauge("sp") and gauge("ep") and true, true, "three gauges")
 eq(gauge("hp").parent, slot, "gauges live in the vitals slot")
+eq(label("hp").parent, slot, "number labels live in the vitals slot")
+for _, k in ipairs({ "hp", "sp", "ep" }) do
+    local g, l = gauge(k), label(k)
+    eq(l:get_x() + l:get_width() <= g:get_x(), true, k .. " number label ends before its bar starts (no text on the bar)")
+    eq(g:get_x() + g:get_width() <= slot:get_x() + slot:get_width() + 0.5, true, k .. " bar stays in the slot")
+    eq(l:get_y(), g:get_y(), k .. " label and bar share a row")
+end
 eq(#F.triggers, 1, "one trigger")
 F.feedLine(PROMPT)
-eq(gauge("hp").valueText, "HP 296/296", "hp text")
-eq(gauge("sp").valueText, "SP 120/150", "sp text")
+eq(label("hp").text, "HP 296/296", "hp text")
+for _, k in ipairs({ "hp", "sp", "ep" }) do -- after a real draw, the bar still carries no text
+    eq(gauge(k).valueText == nil or gauge(k).valueText == "", true, k .. " the bar itself carries no text")
+end
+eq(label("sp").text, "SP 120/150", "sp text")
 eq(gauge("ep").value, 80, "ep value")
 eq(gauge("sp").max, 150, "sp max")
 eq(#raised, 1, "onVitals raised")
@@ -79,7 +90,7 @@ eq(#raised, 2, "changed prompt: event")
 -- negative current: bar clamped, text real
 F.feedLine("Hp: -12/296 Sp: 120/150 Ep: 80/90 >")
 eq(gauge("hp").value, 0, "negative clamped for the bar")
-eq(gauge("hp").valueText, "HP -12/296", "negative shown in text")
+eq(label("hp").text, "HP -12/296", "negative shown in text")
 
 F.feedLine("Hp: 400/296 Sp: 120/150 Ep: 80/90 >")
 eq(gauge("hp").value, 296, "over max clamped for the bar")
@@ -107,8 +118,11 @@ for _, name in ipairs({ "welstar", "crypt" }) do
     eq(gauge("ep").styleFront:find(("rgb(%d, %d, %d)"):format(c.ep[1], c.ep[2], c.ep[3]), 1, true) ~= nil, true, name .. " ep front")
     eq(gauge("sp").styleBack:find(("rgb(%d, %d, %d)"):format(c.surface[1], c.surface[2], c.surface[3]), 1, true) ~= nil, true, name .. " back")
     eq(gauge("sp").styleText:find(("rgb(%d, %d, %d)"):format(c.text[1], c.text[2], c.text[3]), 1, true) ~= nil, true, name .. " text")
+    -- the numbers are drawn in the panel text colour, on the panel background: always readable (THEME-013)
+    eq(label("hp").textColor, T.textColor("panel", T.resolve(name)), name .. " number colour is the panel text colour")
+    eq(label("hp").styleSheet:find("background-color: transparent", 1, true) ~= nil, true, name .. " number label is transparent")
 end
-eq(gauge("hp").valueText, "HP 100/296", "values redrawn after a theme change")
+eq(label("hp").text, "HP 100/296", "values redrawn after a theme change")
 
 -- teardown
 V.teardown(env)
@@ -136,7 +150,7 @@ eq(V.last.hp, 296, "prompt still tracked without gauges")
 slot = Geyser.Container:new({ name = "test.slot", x = 0, y = 0, width = 200, height = 100 })
 F.fire("rmgui.onLayout", { layout = "wide" })
 eq(gauge("hp") ~= nil, true, "onLayout builds")
-eq(gauge("hp").valueText, "HP 296/296", "built gauges show the last values")
+eq(label("hp").text, "HP 296/296", "built gauges show the last values")
 F.fire("rmgui.onLayout", { layout = "wide" })
 eq(mod() >= 3 and F.counts().objects, #F.objectList, "second onLayout keeps the gauges")
 eq(F.counts().objects, #F.objectList, "object count consistent")

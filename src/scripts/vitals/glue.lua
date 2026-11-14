@@ -9,10 +9,18 @@ local ELEMENT = "vitals.gauges"
 
 local function rgb(c) return ("rgb(%d, %d, %d)"):format(c[1], c[2], c[3]) end
 
+-- The numbers sit in their own label at the left of the bar, on the panel background. Text drawn on
+-- the bar itself is unreadable: one colour cannot contrast with both a bright bar and a dark back
+-- (seen in a live Mudlet on the bright sosel colours).
 local function draw(g, key, label, d)
     local cur, max = d[key], d[key .. "Max"]
     local bar = math.max(0, math.min(max, cur))
-    g:setValue(bar, max, ("%s %d/%d"):format(label, cur, max))
+    g:setValue(bar, max)
+    local l = V.labels and V.labels[key]
+    if l then
+        local text = ("%s %d/%d"):format(label, cur, max)
+        if V.textHex then l:echo(text, V.textHex) else l:echo(text) end
+    end
 end
 
 local function drawAll()
@@ -28,12 +36,15 @@ local function styleAll()
     for _, k in ipairs(KEYS) do
         local g, s = V.gauges[k[1]], V.style[k[1]]
         if g and s then pcall(g.setStyleSheet, g, s[1], s[2], s[3]) end
+        local l = V.labels and V.labels[k[1]]
+        if l and V.labelStyle then pcall(l.setStyleSheet, l, V.labelStyle) end
     end
 end
 
 local function destroy()
     for _, g in pairs(V.gauges or {}) do pcall(g.delete, g) end
-    V.gauges, V.container = nil, nil
+    for _, l in pairs(V.labels or {}) do pcall(l.delete, l) end
+    V.gauges, V.labels, V.container = nil, nil, nil
 end
 
 local function build(env)
@@ -43,12 +54,16 @@ local function build(env)
     -- the layout may have been rebuilt: gauges of a replaced slot died with it
     if V.gauges and V.container == c then return end
     destroy()
-    V.gauges, V.container = {}, c
+    V.gauges, V.labels, V.container = {}, {}, c
     local made, err = pcall(function()
         for i, k in ipairs(KEYS) do
             -- 32% + 2% gap per row; percentages follow container resizes, unlike fixed pixels
+            local y = ((i - 1) * 34) .. "%"
+            V.labels[k[1]] = Geyser.Label:new({
+                name = PREFIX .. k[1] .. "label", x = 0, y = y, width = "36%", height = "32%",
+            }, c)
             V.gauges[k[1]] = Geyser.Gauge:new({
-                name = PREFIX .. k[1], x = 0, y = ((i - 1) * 34) .. "%", width = "100%", height = "32%",
+                name = PREFIX .. k[1], x = "38%", y = y, width = "62%", height = "32%",
             }, c)
         end
     end)
@@ -75,6 +90,9 @@ function V.init(env)
     -- shortcut: gauge colours are plain stylesheets, no image roles; upgrade when the themes ship gauge images
     local okT, errT = pcall(rmgui.theme.register, ELEMENT, function(ctx)
         local c = ctx.theme.colors
+        V.textHex = ctx.textColor("panel")
+        V.labelStyle = ("QLabel{background-color: transparent; color: %s; font-size: %dpt;}"):format(
+            V.textHex, (ctx.theme.fonts and ctx.theme.fonts.size) or 10)
         V.style = {}
         for _, k in ipairs(KEYS) do
             V.style[k[1]] = {
@@ -100,7 +118,7 @@ function V.teardown(env)
     V.trigger, V.handler = nil, nil
     destroy()
     pcall(rmgui.theme.unregister, ELEMENT)
-    V.last, V.style = nil, nil
+    V.last, V.style, V.textHex, V.labelStyle = nil, nil, nil, nil
 end
 
 rmgui.core.register("vitals", { init = V.init, teardown = V.teardown })
