@@ -1,3 +1,4 @@
 [
-  { "name": "core", "isFolder": "yes", "isActive": "yes" }
+  { "name": "core", "isFolder": "yes", "isActive": "yes" },
+  { "name": "chat", "isFolder": "yes", "isActive": "yes" }
 ]

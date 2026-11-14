@@ -16,7 +16,7 @@ RetroMUD has many chat channels. A player listens on several channels at the sam
 - Routing: the work of sending each chat line to the right tab.
 - Speaker: the player or character who sends a message.
 - Decoration: the text between `<` and `>` in a guild message. Each guild has its own decoration.
-- Continuation line: a line that continues the message above it. In live output it starts with 6 spaces.
+- Continuation line: a line that continues the message above it. In live output it starts with 5 to 7 spaces. Most start with 6.
 - Action: a message in which the player tells what the character does. The player writes `*` around the text to make one.
 - Prompt: the status line that the game sends after each output block. It shows the health values of the character.
 - History block: the output of a history command such as `retro last`.
@@ -61,9 +61,11 @@ CHAT-002. The module must support these line forms. Appendix A has a sample for 
 7. System notice: `[info] text` and `[alert] text`. The game writes these lines. No player sends them. The text is free-form and does not need to hold a player name. The form `[alert]` is an assumption. See section 8.
 8. Tell from a player: `Name telepathically contacts you with 'text'`.
 
-CHAT-003. If a line starts with 6 spaces and follows a chat line, the line must go to the channel of the line above. The module must stop at the first line that does not start with 6 spaces. This rule does not apply to history blocks. See CHAT-070.
+CHAT-003. If a line follows a chat line and starts with 5 to 7 spaces, the line must go to the channel of the line above. The module must stop at the first line that does not match. This rule does not apply to history blocks. See CHAT-070. The sample logs show these indents: 6 spaces in most messages, 5 spaces in one message, and 7 spaces in `[info]` lines.
 
-CHAT-004. If a line has the guild form but its decoration is not in the table, the line must go to the Guild tab. The module must not drop the line.
+CHAT-003a. A line of drawn map art can start with the same spaces. If less than half of the non-space characters of the line are letters or digits, the module must not treat the line as a continuation line. The indent range and the ratio must be settings in the rules table.
+
+CHAT-004. If a line has the guild form but its decoration is not in the table, the line must go to the Guild tab. The module must not drop the line. A decoration counts as a decoration only if it has at least 3 characters and at least one symbol. This keeps plain text such as `a < b > c` out of the Guild tab.
 
 CHAT-005. The module must look at every line. Chat lines arrive between other output, with no blank line before or after them.
 
@@ -83,7 +85,7 @@ CHAT-014. The module must compare a decoration as plain text, with `string.find(
 
 CHAT-015. The table must store each decoration without spaces at its ends. The match must allow spaces between the decoration and the closing `>`. Some decorations have two spaces there.
 
-CHAT-016. In the normal form, the speaker is the text before ` < `. In the action form, the speaker is the text after the closing `>`. The module must take the speaker from that text. A speaker name can have spaces, a title, and commas. It is not one word.
+CHAT-016. In the normal form, the speaker is the text before ` < `. A speaker name can have spaces, a title, and commas. It is not one word. In the action form, the name and the action cannot be split safely. The speaker is `nil`, and the text holds the name and the action together.
 
 CHAT-017. The module must accept the three bracket types `[ ]`, `{ }`, and `< >` around a channel name. This applies to the player-channel form and to the action form. The opening and closing bracket must form a pair. The module must put the bracket type in the field `rank` of the event `rmgui.onChat`. The meaning of each type is not confirmed. See section 8.
 
@@ -171,7 +173,7 @@ CHAT-064. The player must be able to use the tab bar with the keyboard. The tab 
 
 ## 7. Verification
 
-1. Unit tests: the rule engine is pure Lua and does not use Geyser. Each test gives sample lines to the engine. It makes sure that the channel, the group, and the speaker are correct. The sample lines in Appendix A and C are the first tests.
+1. Unit tests: the rule engine is pure Lua and does not use Geyser. They are in `test/chat_engine_test.lua`. Run `./test/run.sh`, or `COVER=1 lua test/chat_engine_test.lua` to list the engine lines that no test ran. Each test gives sample lines to the engine. It makes sure that the channel, the group, and the speaker are correct. The sample lines in Appendix A and C are the first tests.
 2. Replay test: run the sample logs through the rule engine. Count the lines by channel and compare the counts with Appendix B. No line that is not chat can match. See CHAT-001.
 3. Continuation test: a message with continuation lines must stay in one tab. See CHAT-003 and CHAT-034.
 4. Manual test in Mudlet: CHAT-006, CHAT-030, CHAT-031, CHAT-032, CHAT-040, and CHAT-064.
@@ -189,6 +191,7 @@ CHAT-064. The player must be able to use the tab bar with the keyboard. The tab 
 8. What is the default for CHAT-040? Many players want chat in both places.
 9. Does a character that is not in a guild see the messages of that guild? The samples show only the own messages of the player.
 10. Must the module fill a tab from history when the player connects? It could send `<channel> last`. This would show recent messages in a new session. It would also send commands to the game, so it needs a setting and a limit.
+12. Does the indent of a continuation line change with the terminal width? All logs that we have use the width 80. At a narrower or wider width, the game can use another indent, or no indent. The module cannot find a continuation line that has no indent.
 11. The channel list shows only `welstar` and `perdow` of the six world channels. Do `wysoom`, `raji`, `sosel`, and `crypt` exist as channels that the player can switch on? Or are they announcements only? We have no sample line for them.
 
 ## Appendix A: observed line forms
