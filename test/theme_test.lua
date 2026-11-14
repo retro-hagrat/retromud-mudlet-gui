@@ -1,5 +1,5 @@
 -- Tests for src/scripts/theme. Run from the repo root: lua test/theme_test.lua
--- COVER=1 prints the lines of theme.lua that no test ran.
+-- COVER=1 prints the lines of logic.lua that no test ran.
 local root = (arg[0]:match("^(.*)/test/[^/]*$")) or "."
 local COVER = os.getenv("COVER")
 local hit = {}
@@ -7,7 +7,7 @@ if COVER then
     debug.sethook(function(_, l) hit[debug.getinfo(2, "S").short_src .. ":" .. l] = true end, "l")
 end
 dofile(root .. "/src/scripts/theme/presets.lua")
-dofile(root .. "/src/scripts/theme/theme.lua")
+dofile(root .. "/src/scripts/theme/logic.lua")
 local T = rmgui.theme
 
 local fails, count = 0, 0
@@ -224,7 +224,7 @@ eq((os.clock() - t0) / 2000 < 0.005, true, "apply work stays under 5 ms")
 
 if COVER then
     debug.sethook()
-    local path = root .. "/src/scripts/theme/theme.lua"
+    local path = root .. "/src/scripts/theme/logic.lua"
     local n = 0
     for l in io.lines(path) do
         n = n + 1
@@ -232,7 +232,7 @@ if COVER then
         local skip = code == "" or code:match("^%-%-") or code:match("^end[%),]*$") or code:match("^else$") or code:match("^local function")
             or code:match("^function ") or code:match("^[%]})]+,?$") or code:match("^elseif") or code:match("^}$")
         if not skip and not hit[path .. ":" .. n] and not hit[("%s:%d"):format(path, n)] then
-            print(("not run  theme.lua:%d  %s"):format(n, code))
+            print(("not run  logic.lua:%d  %s"):format(n, code))
         end
     end
 end

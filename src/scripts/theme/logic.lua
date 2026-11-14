@@ -1,4 +1,4 @@
--- theme/theme: pure Lua theme logic (merge, contrast, stylesheets, image lookup).
+-- theme/logic: pure Lua theme logic (merge, contrast, stylesheets, image lookup).
 -- No Mudlet or Geyser calls. See doc/spec/theming.md.
 rmgui = rmgui or {}
 rmgui.theme = rmgui.theme or {}

@@ -1,4 +1,4 @@
 [
   { "name": "presets", "isActive": "yes", "isFolder": "no" },
-  { "name": "theme", "isActive": "yes", "isFolder": "no" }
+  { "name": "logic", "isActive": "yes", "isFolder": "no" }
 ]
