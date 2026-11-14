@@ -27,7 +27,7 @@ It can change:
 
 It cannot change:
 
-1. The colours of the game text and the background of the text area of the main window. Mudlet has no function for this. The player sets these colours in Mudlet Preferences. Each preset can come with a note that names the matching Preferences values.
+1. The colours of the game text and the background of the text area of the main window. An image behind the main window shows only in the gaps, because each piece of text keeps a black box (tested in Mudlet). The GUI does not set a main window image. It frames the text area with its own labels instead, which can show images (see `window.png`). Mudlet has no function for this. The player sets these colours in Mudlet Preferences. Each preset can come with a note that names the matching Preferences values.
 2. The 16 ANSI colours.
 
 ## 4. Requirements

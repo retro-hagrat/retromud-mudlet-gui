@@ -70,8 +70,9 @@ So pixel art needs nine-slice images that the code shows at a whole-number scale
 
 1. `setBackgroundColor("main", r, g, b, a)` changes only the empty space of the main window. Each piece of game text keeps its own black background. So the text area stays black.
 2. `getConfig()` returns 65 settings. None of them is a colour of the console or an ANSI colour. Some map settings exist, for example `mapStyle` and `mapInfoColor`.
-3. We listed all Lua functions with the words ansi, colour, palette, or theme in their names. No function sets the ANSI palette. The table `color_table` is readable. For example `color_table.ansi_001` holds `128,0,0`. Writing to it would not recolour the screen.
-4. These functions exist but we did not test them: `setRoomBorderColor`, `setCustomEnvColor`, `setBorderColor`, `setAppStyleSheet`, and `setProfileStyleSheet`.
+3. `setBackgroundImage("main", path, "tile")` tiled a checker image across the whole main window. The image showed in the empty space and in the gaps between lines, but every piece of text kept its own black box. Setting `setBackgroundColor("main", 0, 0, 0, 0)` (fully transparent) did not change this. So Mudlet paints a black background under each character, and we found no Lua call that makes it transparent. The player saw this in two screenshots. After the test we called `resetBackgroundImage("main")` and put the colour back to opaque black.
+4. We listed all Lua functions with the words ansi, colour, palette, or theme in their names. No function sets the ANSI palette. The table `color_table` is readable. For example `color_table.ansi_001` holds `128,0,0`. Writing to it would not recolour the screen.
+5. These functions exist but we did not test them: `setRoomBorderColor`, `setCustomEnvColor`, `setBorderColor`, `setAppStyleSheet`, and `setProfileStyleSheet`.
 
 ### 6. Map colours and command line colours
 
