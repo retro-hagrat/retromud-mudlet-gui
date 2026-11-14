@@ -8,6 +8,7 @@ local B = rmgui.buttons
 local prevEnv = B.env_
 if B.teardown then pcall(B.teardown) end
 local PREFIX = "rmgui.buttons."
+-- the toggle names the action a click will do: "start map" while off, "stop map" while on
 local ORDER = { "where", "scan", "undo", "mapToggle" }
 local CELL = { where = 0, scan = 25, undo = 50, mapToggle = 75 } -- one row, a quarter each
 
@@ -70,11 +71,11 @@ local function act(name)
         if a and type(a[verb]) == "function" then
             callApi(a[verb])
             local ok2, v2 = pcall(a.isMapping) -- the mapper may not raise rmap.onMapping: read the state back
-            if ok2 and type(v2) == "boolean" then mapping = v2; setText("mapToggle", mapping and "map on" or "map off") end
+            if ok2 and type(v2) == "boolean" then mapping = v2; setText("mapToggle", mapping and "stop map" or "start map") end
         else
             pcall(env.expandAlias, "rmap " .. verb)
             mapping = not isOn -- no api: remembered state is all we have
-            setText("mapToggle", mapping and "map on" or "map off")
+            setText("mapToggle", mapping and "stop map" or "start map")
         end
         return
     end
@@ -104,7 +105,7 @@ local function build()
         if ok3 then mapping = v and true or false end
     end
     texts.where, texts.scan, texts.undo = "where", "scan", "undo"
-    texts.mapToggle = mapping and "map on" or "map off"
+    texts.mapToggle = mapping and "stop map" or "start map"
     drawAll()
 end
 
@@ -120,7 +121,7 @@ function B.init(e)
     on("rmgui.onLayout", function() build() end)
     on("rmap.onMapping", function(_, on_)
         mapping = on_ and true or false
-        if built then setText("mapToggle", mapping and "map on" or "map off") end
+        if built then setText("mapToggle", mapping and "stop map" or "start map") end
     end)
     build()
 end

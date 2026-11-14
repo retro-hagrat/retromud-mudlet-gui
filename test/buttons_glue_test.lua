@@ -51,7 +51,7 @@ local env = world()
 rmgui.buttons.init(env)
 eq(#F.objects["slot"].children, 4, "four buttons")
 for _, n in ipairs({ "where", "scan", "undo", "mapToggle" }) do eq(L(n) ~= nil, true, "label " .. n) end
-eq(L("mapToggle").text, "map off", "toggle starts off")
+eq(L("mapToggle").text, "start map", "toggle starts off")
 theme("buttons.labels")
 eq(L("where").styleSheet, "css-button", "stylesheet")
 eq(L("where").textColor, "col-button", "text colour")
@@ -72,21 +72,21 @@ calls = {}
 L("mapToggle"):fireClick(); rmap.mapping = true; L("mapToggle"):fireClick()
 eq(table.concat(calls, ","), "start,stop", "toggle via isMapping")
 eq(expanded(), "", "no alias with api")
-eq(L("mapToggle").text, "map on", "api that never raises an event: label read back from isMapping (fake reports mapping = true)")
+eq(L("mapToggle").text, "stop map", "api that never raises an event: label read back from isMapping (fake reports mapping = true)")
 F.fire("rmap.onMapping", true)
-eq(L("mapToggle").text, "map on", "event on")
+eq(L("mapToggle").text, "stop map", "event on")
 eq(L("mapToggle").textColor, "col-button", "event redraw colour")
 F.fire("rmap.onMapping", false)
-eq(L("mapToggle").text, "map off", "event off")
+eq(L("mapToggle").text, "start map", "event off")
 
 -- api missing (rmap absent, and rmap without api)
 rmap = nil
 L("where"):fireClick(); L("scan"):fireClick(); L("undo"):fireClick()
 L("mapToggle"):fireClick(); L("mapToggle"):fireClick()
 eq(expanded(), "rmap where|rmap scan|rmap undo|rmap start|rmap stop", "alias fallback, remembered toggle")
-eq(L("mapToggle").text, "map off", "label back to off after the second click without api")
+eq(L("mapToggle").text, "start map", "label back to off after the second click without api")
 L("mapToggle"):fireClick()
-eq(L("mapToggle").text, "map on", "label follows the click without api (no event needed)")
+eq(L("mapToggle").text, "stop map", "label follows the click without api (no event needed)")
 L("mapToggle"):fireClick()
 rmap = {}
 F.expanded = {}
@@ -102,11 +102,11 @@ eq(table.concat(calls, ","), "start", "isMapping failing")
 rmgui.buttons.teardown()
 rmap = { api = { isMapping = function() return true end } }
 rmgui.buttons.init(env)
-eq(L("mapToggle").text, "map on", "initial state from api")
+eq(L("mapToggle").text, "stop map", "initial state from api")
 rmgui.buttons.teardown()
 rmap = { api = { isMapping = function() error("x") end } }
 rmgui.buttons.init(env)
-eq(L("mapToggle").text, "map off", "isMapping fails at init")
+eq(L("mapToggle").text, "start map", "isMapping fails at init")
 rmgui.buttons.teardown()
 
 -- teardown
