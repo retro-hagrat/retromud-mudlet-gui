@@ -65,7 +65,9 @@ local function drawButton()
     local b = st.button
     if not b then return end
     local ok, err = pcall(function()
-        local text = titleOf(activeName()) .. " v"
+        -- the name is centred and the arrow sits at the far right, so it does not read as part of the name
+        local text = ("<table width='100%%' cellspacing='0' cellpadding='0'><tr><td width='15%%'></td><td align='center'>%s</td>"
+            .. "<td width='15%%' align='right'>v&nbsp;</td></tr></table>"):format(titleOf(activeName()))
         if not st.ctx then b:echo(text) return end
         b:setStyleSheet(plainStyle("surfaceAlt", "accent", st.ctx.theme))
         b:echo(text, st.ctx.textColor("button"))

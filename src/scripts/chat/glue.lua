@@ -48,15 +48,22 @@ end
 local function title(id)
     local n = S.unread[id] or 0
     local t = tabDef(id).title
-    return n > 0 and ("%s (%d)"):format(t, n) or t
+    return n > 0 and ("%s %d"):format(t, n) or t -- no brackets: a tab has about 50 px for its text
 end
 
+-- A tab is an image label with a transparent text label over its whole area. The image has 12 px
+-- borders, which left only about 27 px for the text and cut the names (seen in a live Mudlet).
 local function drawTab(id)
-    local label = S.tabs[id]
+    local label, txt = S.tabs[id], S.tabText and S.tabText[id]
     if not label then return end
     local role = id == S.active and "tabActive" or "tab"
     if S.ctx then pcall(label.setStyleSheet, label, S.ctx.css(role)) end
-    pcall(label.echo, label, title(id), S.ctx and S.ctx.textColor(role) or nil)
+    local target = txt or label
+    if txt and S.ctx then
+        local size = tonumber(S.ctx.theme and S.ctx.theme.fonts and S.ctx.theme.fonts.sizeSmall) or 9
+        pcall(txt.setStyleSheet, txt, ("QLabel{background-color: transparent; color: %s; font-size: %dpt;}"):format(S.ctx.textColor(role), size))
+    end
+    pcall(target.echo, target, title(id), S.ctx and S.ctx.textColor(role) or nil)
 end
 
 local function layoutTabs()
@@ -88,6 +95,11 @@ local function addTab(id)
     local label = Geyser.Label:new({ name = NAME .. ".tab." .. id, x = 0, y = 0, width = "10%", height = "100%" }, S.strip)
     S.objs[#S.objs + 1] = label
     S.tabs[id] = label
+    S.tabText = S.tabText or {}
+    local txt = Geyser.Label:new({ name = NAME .. ".tab." .. id .. ".text", x = 0, y = 0, width = "100%", height = "100%" }, label)
+    S.objs[#S.objs + 1] = txt
+    S.tabText[id] = txt
+    pcall(txt.setClickCallback, txt, function() pcall(activate, id) end)
     S.order[#S.order + 1] = id
     label:setClickCallback(function() pcall(activate, id) end)
     local pct = stripPct()
@@ -111,7 +123,7 @@ end
 
 local function destroyObjects()
     for i = #S.objs, 1, -1 do pcall(S.objs[i].delete, S.objs[i]) end
-    S.objs, S.tabs, S.consoles, S.order, S.unread = {}, {}, {}, {}, {}
+    S.objs, S.tabs, S.tabText, S.consoles, S.order, S.unread = {}, {}, {}, {}, {}, {}
     S.strip, S.built = nil, false
 end
 

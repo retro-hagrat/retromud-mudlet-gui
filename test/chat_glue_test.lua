@@ -24,6 +24,7 @@ local function eq(got, want, label)
 end
 local function txt(id) return table.concat(F.consoleText("rmgui.chat.console." .. id), "|") end
 local function tab(id) return F.objects["rmgui.chat.tab." .. id] end
+local function tabText(id) return F.objects["rmgui.chat.tab." .. id .. ".text"] end -- the text label over the image
 
 local slot, env, events
 local function world(opts)
@@ -62,7 +63,7 @@ for _, id in ipairs({ "all", "chat", "world", "party", "info", "guild", "tells" 
     eq(F.objects["rmgui.chat.console." .. id] ~= nil, true, "console " .. id)
 end
 eq(tab("wizard"), nil, "wizard tab is lazy")
-eq(tab("all").text, "All", "title drawn")
+eq(tabText("all").text, "All", "title drawn")
 eq(F.objects["rmgui.chat.console.all"].hidden, false, "all console shown")
 eq(F.objects["rmgui.chat.console.chat"].hidden, true, "other console hidden")
 eq(F.objects["rmgui.chat.console.all"].wrap == nil and F.objects["rmgui.chat.console.all"].autoWrap, true, "wrap on")
@@ -139,17 +140,17 @@ for _, o in ipairs(F.objectList) do if o.name == "rmgui.chat.tab.wizard" then n 
 eq(n, 1, "wizard tab only once")
 
 F.lines("Aldric [retro]: one", "Aldric [retro]: two")
-eq(tab("chat").text, "Chat (2)", "unread count on chat")
-eq(tab("all").text, "All", "active tab has no count")
+eq(tabText("chat").text, "Chat 2", "unread count on chat")
+eq(tabText("all").text, "All", "active tab has no count")
 tab("chat"):fireClick()
-eq(tab("chat").text, "Chat", "count cleared on click")
+eq(tabText("chat").text, "Chat", "count cleared on click")
 eq(F.objects["rmgui.chat.console.chat"].hidden, false, "clicked console shown")
 eq(F.objects["rmgui.chat.console.all"].hidden, true, "old console hidden")
 F.lines("Aldric [retro]: three")
-eq(tab("all").text, "All (1)", "all unread while another tab is active")
-eq(tab("chat").text, "Chat", "active chat stays clean")
+eq(tabText("all").text, "All 1", "all unread while another tab is active")
+eq(tabText("chat").text, "Chat", "active chat stays clean")
 tab("all"):fireClick()
-eq(tab("all").text, "All", "all cleared")
+eq(tabText("all").text, "All", "all cleared")
 
 ---------------------------------------------------------------- theme
 world(); G.init(env)
@@ -158,14 +159,14 @@ eq(before, nil, "no style before the theme")
 rmgui.theme.apply("perdow", env, env.settings)
 eq(type(tab("chat").styleSheet), "string", "tab styled")
 eq(tab("all").styleSheet ~= tab("chat").styleSheet, true, "active tab styled differently")
-eq(tab("all").textColor:match("^#%x%x%x%x%x%x$") ~= nil, true, "hex text colour")
+eq(tabText("all").textColor:match("^#%x%x%x%x%x%x$") ~= nil, true, "hex text colour")
 local s = rmgui.theme.presets.perdow.colors.surface
 local c = F.objects["rmgui.chat.console.all"].color
 eq(c[1] .. c[2] .. c[3], s[1] .. s[2] .. s[3], "console background from surface")
 F.lines("Aldric [retro]: hi")
-eq(tab("chat").text, "Chat (1)", "title redraw keeps unread")
+eq(tabText("chat").text, "Chat 1", "title redraw keeps unread")
 rmgui.theme.apply("crypt", env, env.settings)
-eq(tab("chat").text, "Chat (1)", "text survives a theme change")
+eq(tabText("chat").text, "Chat 1", "text survives a theme change")
 local cs = rmgui.theme.presets.crypt.colors.surface
 c = F.objects["rmgui.chat.console.all"].color
 eq(c[1] .. c[2] .. c[3], cs[1] .. cs[2] .. cs[3], "console recoloured")
@@ -206,7 +207,7 @@ rmgui.layout = { get = function() return slot end }
 F.fire("rmgui.onLayout", { layout = "wide" })
 eq(tab("all") ~= nil, true, "built on onLayout")
 F.fire("rmgui.onLayout", { layout = "wide" })
-eq(F.counts().objects, 1 + 1 + 7 * 2, "second onLayout adds nothing")
+eq(F.counts().objects, 1 + 1 + 7 * 3, "second onLayout adds nothing (strip, slot, and 7 tabs with image, text and console)")
 G.teardown(env)
 F.objects.slot:delete()
 empty("teardown after late build")

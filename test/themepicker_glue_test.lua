@@ -40,6 +40,12 @@ local function world(opts)
     return env
 end
 local function obj(n) return F.objects["rmgui.picker." .. n] end
+
+local function nameOnButton() -- the title inside the centred cell of the button markup
+    return (obj("button").text or ""):match("<td align='center'>(.-)</td>")
+end
+local function arrowCell() return (obj("button").text or ""):match("<td width='15%%?' align='right'>(.-)</td>") end
+
 local function row(n) return obj("row." .. n) end
 local function counts() local c = F.counts() return c.objects end
 local function applyTheme(name) rmgui.theme.apply(name, env, env.settings) end
@@ -61,12 +67,14 @@ rmgui.themepicker.init(env)
 eq(obj("button") ~= nil, true, "button built")
 eq(obj("button").parent, slot, "button parent is the slot")
 eq(obj("button").tooltip, "Change the look", "tooltip")
-eq(obj("button").text, "Perdow v", "text before any theme apply")
+eq(nameOnButton(), "Perdow", "name before any theme apply")
+eq(arrowCell() ~= nil and arrowCell():find("v", 1, true) ~= nil, true, "the arrow is in its own cell at the right, not after the name")
+eq(obj("button").text:find("Perdow v", 1, true), nil, "no arrow glued to the name")
 eq(hintCount(), 1, "hint said")
 eq(env.settings.ui.hintShown, true, "hint remembered")
 eq(saves, 1, "hint saved")
 applyTheme("crypt")
-eq(obj("button").text, "Crypt v", "text follows theme")
+eq(nameOnButton(), "Crypt", "name follows theme")
 local th = rmgui.theme.resolve("crypt")
 has(obj("button").styleSheet, "background-color: rgb(32,27,36)", "button bg is surfaceAlt")
 has(obj("button").styleSheet, "border: 1px solid rgb(214,64,92)", "button border is accent")
@@ -74,7 +82,7 @@ has(obj("button").styleSheet, "font-size: 10pt", "button font")
 eq(obj("button").textColor, rmgui.theme.textColor("button", th), "button text colour")
 eq(obj("button").styleSheet:find("border-image", 1, true), nil, "no nine-slice on the button")
 applyTheme("welstar")
-eq(obj("button").text, "Welstar v", "text per theme")
+eq(nameOnButton(), "Welstar", "name per theme")
 
 ---------------------------------------------------------------- open: counts and geometry
 local before = counts()
@@ -133,7 +141,7 @@ eq(env.settings.theme, "sosel", "setting changed")
 eq(saves, s0 + 1, "saved once")
 eq(obj("panel"), nil, "panel closed after pick")
 eq(counts(), before, "no leftovers after pick")
-eq(obj("button").text, "Sosel v", "button follows the pick")
+eq(nameOnButton(), "Sosel", "button follows the pick")
 obj("button"):fireClick()
 eq(row("sosel").text, "Sosel  (current)", "marker moved")
 row("sosel"):fireClick()
@@ -169,7 +177,7 @@ eq(counts(), before, "resize leaves nothing")
 obj("button"):fireClick()
 applyTheme("raji")
 eq(obj("panel"), nil, "theme change closes")
-eq(obj("button").text, "Raji v", "theme change redraws")
+eq(nameOnButton(), "Raji", "theme change redraws")
 
 ---------------------------------------------------------------- clamping
 F.setWindowSize(1920, 904)
@@ -197,7 +205,7 @@ rmgui.layout.get = function() return lateSlot end
 applyTheme("sosel")
 F.fire("rmgui.onLayout", { layout = "wide" })
 eq(obj("button") ~= nil, true, "built on layout event")
-eq(obj("button").text, "Sosel v", "late button themed")
+eq(nameOnButton(), "Sosel", "late button themed")
 eq(hintCount(), 1, "hint after the late build")
 F.fire("rmgui.onLayout", { layout = "wide" })
 eq(#lateSlot.children, 1, "no second button")
