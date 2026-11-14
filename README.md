@@ -28,7 +28,7 @@ Needs Java and [Muddler](https://github.com/demonnic/muddler/releases) (`muddle`
 
 The GUI is built and works in a live Mudlet profile: the frame (status bar and two columns), six planet themes, vitals gauges, a tabbed chat panel, buttons, and a map host. See `doc/design.md` for the modules and `doc/spec/` for the specifications.
 
-Commands: `rgui theme` (list themes), `rgui theme <name>`, `rgui theme reload`, `rgui layout wide|compact|auto`.
+Themes: click the theme button at the top right of the status bar and pick a planet. Or type `rgui theme` (list themes), `rgui theme <name>`, `rgui theme reload`. Layout: `rgui layout wide|compact|auto`.
 
 Known limits: the map host builds its own map widget until the mapper creates the `rmap.map` pane. The map toggle, the `where`, `scan` and `undo` buttons use the mapper's commands. Not everything has been judged by eye yet.
 

@@ -65,6 +65,8 @@ for _, n in ipairs({ "top", "chat", "map", "vitals", "buttons" }) do
     eq(L.get(n).name, "rmgui.layout." .. n .. ".inner", "inner name " .. n)
 end
 eq(L.get("nope"), nil, "unknown slot")
+eq(L.get("picker") ~= nil, true, "get picker")
+eq(L.get("picker").name, "rmgui.layout.picker.inner", "picker inner name")
 local chat, chatIn = F.objects["rmgui.layout.chat"], L.get("chat")
 eq(chat:get_height(), 904 - 36 - 12, "chat fills the Inside area of the column (3 x padding 4 less)")
 eq(chatIn:get_x() - chat:get_x(), 16, "inner inset 16")
@@ -76,6 +78,18 @@ eq(btn:get_y() + btn:get_height() <= 904, true, "buttons within window")
 local top = L.get("top")
 eq(top:get_x() - F.objects["rmgui.layout.top"]:get_x(), 16, "top inset x")
 eq(top:get_y() - F.objects["rmgui.layout.top"]:get_y(), 8, "top inset y")
+-- picker slot: inside the status bar label, right of top.inner, no overlap; top.inner 144 px narrower
+do
+    local bar, pk = F.objects["rmgui.layout.top"], L.get("picker")
+    eq(top:get_width(), 1920 - 32 - 144, "top inner is 144 px narrower")
+    eq(pk:get_width(), 144, "picker width")
+    eq(pk:get_height(), top:get_height(), "picker height equals top inner")
+    eq(pk:get_y(), top:get_y(), "picker y equals top inner")
+    eq(pk.parent, bar, "picker is a child of the status bar label")
+    eq(pk:get_x() >= top:get_x() + top:get_width(), true, "picker does not overlap top inner")
+    eq(pk:get_x() + pk:get_width(), bar:get_x() + bar:get_width() - 16, "picker ends at the frame edge")
+    eq(pk:get_y() + pk:get_height() <= bar:get_y() + bar:get_height(), true, "picker inside bar vertically")
+end
 eq(F.objects["rmgui.layout.leftCol"].attached, "left", "left col attached")
 eq(F.objects["rmgui.layout.topBar"].attached, "top", "top attached")
 eq(F.counts().handlers, 1, "one resize handler")
@@ -150,6 +164,10 @@ F.runTimers(0.2)
 eq(#env.raised, base + 1, "applied once")
 eq(F.counts().timers, 0, "timer gone")
 eq(lastLayout(env).layout, "wide", "1400 still wide")
+-- a resize event with an unchanged size (Mudlet raises one per setBorder) must not re-apply
+base = #env.raised
+F.fire("sysWindowResizeEvent", 1400, 800); F.runTimers(1)
+eq(#env.raised, base, "same size resize does not loop")
 
 ---------------------------------------------------------------- commands
 eq(L.command("compact", env), true, "compact handled")
@@ -158,6 +176,9 @@ eq(SAVED > 0, true, "saveSettings called")
 eq(F.borders.left, 0, "compact left 0")
 eq(F.borders.right, 0, "compact right 0")
 eq(F.borders.top, 36, "status bar stays")
+eq(L.get("picker"):get_width(), 144, "picker kept in compact")
+eq(L.get("top"):get_width(), F.objects["rmgui.layout.top"]:get_width() - 64 - 144, "top inner narrower in compact too (frame 32 at scale 2)")
+eq(L.get("picker"):get_x() >= L.get("top"):get_x() + L.get("top"):get_width(), true, "no overlap in compact")
 eq(F.objects["rmgui.layout.leftCol"].hidden, true, "left hidden")
 eq(F.objects["rmgui.layout.rightCol"].hidden, true, "right hidden")
 eq(lastLayout(env).layout, "compact", "compact raised")
@@ -277,7 +298,7 @@ env = mk()
 L.init(env)
 dofile(root .. "/src/scripts/layout/glue.lua")
 L.init(env)
-eq(F.counts().objects, 27, "re-run file then init: no duplicates (24 labels and containers plus 3 Inside areas)")
+eq(F.counts().objects, 28, "re-run file then init: no duplicates (25 labels and containers plus 3 Inside areas)")
 L.teardown(); empty("re-run file teardown")
 eq(F.borders.left, 8, "re-run file restores borders")
 -- a timer that raises must not raise into the resize event
@@ -299,6 +320,21 @@ env.windowSize = function() return "a", "b" end
 L.init(env)
 eq(F.borders.left, 0, "failed apply clears borders")
 L.teardown()
+
+-- review: init with no env or a non-table settings must not raise
+eq(pcall(L.init, nil), true, "init without env")
+env = mk()
+env.settings = 5
+eq(pcall(L.init, env), true, "init with non-table settings")
+eq(F.borders.top, 36, "non-table settings still gives the status bar")
+L.teardown(); empty("non-table settings teardown")
+-- review: a resize handler that outlives teardown (killEvent raised) must not raise
+env = mk()
+env.killEvent = function() error("no kill") end
+L.init(env)
+L.teardown()
+eq(pcall(F.fire, "sysWindowResizeEvent", 800, 600), true, "stale resize handler after teardown")
+eq(F.counts().timers, 0, "stale handler starts no timer"); F.handlers = {}
 
 -- registered with core
 rmgui.core.start(mk())

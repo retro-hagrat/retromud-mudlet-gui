@@ -176,6 +176,7 @@ Each module is a folder in `src/scripts/`. All state lives in the table `rmgui`.
 | `vitals` | The prompt parser and the three gauges | `parser.lua` (pure), `glue.lua` |
 | `chat` | The engine, the router, and the tabbed chat panel. See `doc/spec/chat.md` | `rules.lua`, `engine.lua`, `router.lua` (pure), `glue.lua` |
 | `buttons` | The button grid that calls the mapper | `glue.lua` |
+| `themepicker` | A button at the right end of the status bar and a drop-down panel with one row for each planet theme. See `doc/spec/theming.md` | `glue.lua` |
 | `maphost` | Puts the map in the map panel. It builds a fallback map widget until the mapper creates `rmap.map` | `glue.lua` |
 | `boot` | Builds the env, loads settings, registers the `rgui` aliases, and starts everything | `start.lua` |
 

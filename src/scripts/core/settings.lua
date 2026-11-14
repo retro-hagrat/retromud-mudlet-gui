@@ -9,6 +9,7 @@ function S.defaults()
         mapTheming = true,
         cmdlineTheming = false,
         layout = { mode = "auto" },
+        ui = { hintShown = false },
         chat = {
             maxLines = 2000,
             -- true because the spec has not decided yet (CHAT-040, open question 8)
@@ -30,6 +31,7 @@ local checks = {
     sideWidth = { positive, "a number above 0" },
     topHeight = { positive, "a number above 0" },
     maxLines = { function(v) return isNum(v) and v % 1 == 0 and v >= 100 and v <= 20000 end, "an integer from 100 to 20000" },
+    hintShown = { function(v) return type(v) == "boolean" end, "a boolean" },
     keep = { function(v) return type(v) == "boolean" end, "a boolean" },
 }
 
@@ -78,11 +80,14 @@ local function mergeRaw(saved)
     local top = { theme = "theme", mapTheming = "mapTheming", cmdlineTheming = "cmdlineTheming" }
     local flat = {}
     for k, v in pairs(saved) do
-        if k ~= "layout" and k ~= "chat" and k ~= "version" then flat[k] = v end
+        if k ~= "layout" and k ~= "chat" and k ~= "ui" and k ~= "version" then flat[k] = v end
     end
     overlay(flat, out, top, "", problems)
     section(saved, "layout", function(t)
         overlay(t, out.layout, { mode = "mode", chatWidth = "chatWidth", sideWidth = "sideWidth", topHeight = "topHeight" }, "layout.", problems)
+    end, problems)
+    section(saved, "ui", function(t)
+        overlay(t, out.ui, { hintShown = "hintShown" }, "ui.", problems)
     end, problems)
     section(saved, "chat", function(t)
         local rest = {}

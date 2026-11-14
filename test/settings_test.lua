@@ -32,16 +32,19 @@ eq(d.cmdlineTheming, false, "default cmdlineTheming")
 eq(d.layout.mode, "auto", "default layout mode")
 eq(d.layout.chatWidth, nil, "chatWidth unset")
 eq(d.chat.maxLines, 2000, "default maxLines")
+eq(d.ui.hintShown, false, "default hintShown")
 for _, k in ipairs({ "chat", "world", "wizard", "info", "alert", "guild", "party", "tells" }) do
     eq(d.chat.keepInMain[k], true, "keepInMain default " .. k)
 end
 d.chat.keepInMain.chat = false
 d.layout.mode = "wide"
 d.theme = "x"
+d.ui.hintShown = true
 local d2 = S.defaults()
 eq(d2.chat.keepInMain.chat, true, "defaults are fresh: keepInMain")
 eq(d2.layout.mode, "auto", "defaults are fresh: layout")
 eq(d2.theme, "perdow", "defaults are fresh: theme")
+eq(d2.ui.hintShown, false, "defaults are fresh: ui")
 
 ---------------------------------------------------------------- merge
 local m, p = S.merge({})
@@ -83,6 +86,23 @@ eq(#p, 0, "partial: no problems")
 eq(m.layout.mode, "wide", "partial layout mode")
 eq(m.theme, "raji", "partial theme")
 eq(m.chat.maxLines, 2000, "partial keeps default maxLines")
+
+-- ui section
+m, p = S.merge({ ui = { hintShown = true } })
+eq(#p, 0, "ui valid: no problems")
+eq(m.ui.hintShown, true, "ui.hintShown merged")
+m, p = S.merge({ theme = "raji" })
+eq(m.ui.hintShown, false, "partial file without ui gives the default")
+m, p = S.merge({ ui = { hintShown = "yes", extra = 1 } })
+eq(#p, 2, "ui wrong type and unknown key reported")
+problemsMention(p, "ui.hintShown", "ui wrong type named")
+problemsMention(p, "ui.extra", "ui unknown key named")
+eq(m.ui.hintShown, false, "ui bad value ignored")
+eq(m.ui.extra, nil, "ui unknown key not kept")
+m, p = S.merge({ ui = 5 })
+eq(#p, 1, "ui not a table: one problem")
+problemsMention(p, "ui", "ui not a table named")
+eq(m.ui.hintShown, false, "ui not a table: default")
 
 -- unknown keys
 m, p = S.merge({ colour = "red", [7] = 1, layout = { depth = 3 }, chat = { speed = 1, keepInMain = { mirel = true } } })
@@ -152,6 +172,7 @@ want.layout.mode = "wide"
 want.layout.topHeight = 60
 want.chat.maxLines = 3000
 want.chat.keepInMain.alert = false
+want.ui.hintShown = true
 eq(S.save(env, want), true, "save ok")
 eq(env.files[FILE] ~= want, true, "saved copy is not the caller table")
 m, p = S.load(env)
@@ -161,6 +182,8 @@ eq(m.layout.mode, "wide", "round trip mode")
 eq(m.layout.topHeight, 60, "round trip topHeight")
 eq(m.chat.maxLines, 3000, "round trip maxLines")
 eq(m.chat.keepInMain.alert, false, "round trip keepInMain")
+eq(m.ui.hintShown, true, "round trip hintShown")
+eq(env.files[FILE].ui.hintShown, true, "save writes ui")
 
 -- corrupt
 env = fakeEnv()

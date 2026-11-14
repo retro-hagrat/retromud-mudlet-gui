@@ -12,6 +12,7 @@ local L = rmgui.layout
 local PREFIX = "rmgui.layout."
 local PAD = 4 -- Adjustable padding in pixels
 local GAP, FRAME, MIN_PANEL = 4, 16, 48
+local PICKER_W = 144 -- right end of the status bar, reserved for the theme picker button
 local SLOTS = { "chat", "map", "vitals", "buttons" }
 local SIDES = { "Top", "Right", "Bottom", "Left" }
 
@@ -75,6 +76,7 @@ local function build()
     S.topLabel = label("top", S.topBar, {})
     S.panels, S.inner = {}, {}
     S.inner.top = box("top.inner", S.topLabel)
+    S.inner.picker = box("picker.inner", S.topLabel)
     for i, slot in ipairs(SLOTS) do
         S.panels[slot] = label(slot, i == 1 and leftCol or rightCol, {})
         S.inner[slot] = box(slot .. ".inner", S.panels[slot])
@@ -103,7 +105,9 @@ local function layoutNow(r)
     local f, k = FRAME * scale(), scale()
     place(S.topBar, 0, 0, W, r.top)
     place(S.topLabel, 0, 0, W, r.top)
-    place(S.inner.top, f, 8 * k, math.max(W - 2 * f, 1), math.max(r.top - 16 * k, 1))
+    local ih = math.max(r.top - 16 * k, 1)
+    place(S.inner.top, f, 8 * k, math.max(W - 2 * f - PICKER_W, 1), ih)
+    place(S.inner.picker, math.max(W - f - PICKER_W, 0), 8 * k, PICKER_W, ih)
     if r.layout == "compact" then
         S.leftCol:hide(); S.rightCol:hide()
         setBorders(r.top, 0, r.bottom, 0)
@@ -134,7 +138,7 @@ function L.apply()
     local ok, res = pcall(function()
         if not S.built then error("no objects", 0) end
         local W, H = env.windowSize()
-        local cfg = env.settings and env.settings.layout
+        local cfg = type(env.settings) == "table" and env.settings.layout
         if type(cfg) ~= "table" then cfg = {} end
         S.W, S.H = W or 0, H or 0
         local r = L.calc({
@@ -199,8 +203,16 @@ local function theming(ctx)
 end
 
 local function resize()
+    if not S.env then return end -- the handler outlived teardown (killEvent failed)
     if S.timer then pcall(S.env.killTimer, S.timer) end
-    local ok, id = pcall(S.env.timer, 0.2, function() S.timer = nil; L.apply() end)
+    -- Mudlet raises sysWindowResizeEvent for every setBorder call, so applying on an unchanged
+    -- size would loop forever (live: 5 events per second)
+    local ok, id = pcall(S.env.timer, 0.2, function()
+        S.timer = nil
+        local okS, w, h = pcall(S.env.windowSize)
+        if okS and w == S.W and h == S.H then return end
+        L.apply()
+    end)
     S.timer = ok and id or nil
 end
 
@@ -228,8 +240,9 @@ end
 
 function L.init(env)
     if S.env then L.teardown() end
+    if type(env) ~= "table" then return end
     S.env, S.objs = env, {}
-    local okT, theme = pcall(rmgui.theme.resolve, env.settings and env.settings.theme)
+    local okT, theme = pcall(rmgui.theme.resolve, type(env.settings) == "table" and env.settings.theme or nil)
     S.scale = okT and type(theme) == "table" and theme.imageScale or 1
     S.old = {}
     for _, side in ipairs(SIDES) do

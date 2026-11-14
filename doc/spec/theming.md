@@ -232,3 +232,15 @@ Contrast ratios, computed with the WCAG formula on 2026-11-14. Each cell is the 
 | `map.exits` on `map.background` | 3 | 4.9 | 6.1 | 6.5 | 6.5 | 5.9 | 5.9 |
 
 All cells are at or above their limit.
+
+## Appendix B: the theme picker
+
+The player can change the theme in two ways: with the command `rgui theme <name>`, or with the picker.
+
+1. A button at the right end of the status bar shows the title of the active theme and a down marker, for example `Perdow v`. The layout module reserves 144 px for it (the slot `picker`), and the status text is narrower by the same amount, so the text never runs under the button.
+2. A click on the button opens a panel below the status bar, right-aligned to the window. The panel has six rows of 40 px, with 4 px gaps, one for each planet in the order of `rmgui.theme.list()`. Each row is drawn in its own theme, with that theme's button image and text colour, so the row is a preview. The row of the active theme says `(current)`.
+3. A click on a row applies the theme through `rmgui.theme.command`, saves the choice in the settings file, and closes the panel. A click on the row of the active theme only closes the panel.
+4. A transparent backdrop covers the main window while the panel is open, so a click anywhere else closes it. The panel also closes on a click on the button, on a layout change, and on a window resize.
+5. The first time the GUI starts, it prints one line: `tip: click the theme button at the top right, or type rgui theme`. The settings key `ui.hintShown` records that the player has seen it.
+
+Found in a live Mudlet: Mudlet raises `sysWindowResizeEvent` for every border change. The layout module must compare the new window size with the one it applied, or its own border change triggers the next resize event again.

@@ -32,19 +32,20 @@ MOTIF = {
     "raji": "sky and djinn, Arabian arches and filigree, drifting clouds and stars, lamp and smoke swirls, gold trim, twilight and magical",
     "perdow": "darkness and carnivorous plants, thorny vines, venus flytrap jaws, pitcher plants with dripping toxic green, crimson flower maws, sinister",
 }
+# Runware hangs on square sizes above 256 (seen on 2026-11-14), so square roles are generated at 256x256.
 # role: (target w, h), (generated w, h: multiples of 64), mirror axes, text colour used on it, prompt
 ROLES = {
-    "window": ((128, 128), (512, 512), "xy", "text",
+    "window": ((128, 128), (256, 256), "xy", "text",
         "a seamless tileable texture, 128x128 pixels, subtle repeating pattern of the theme, very low contrast so text stays readable on it"),
-    "panel": ((64, 64), (512, 512), "xy", "text",
+    "panel": ((64, 64), (256, 256), "xy", "text",
         "a square picture frame, 64x64 pixels, 16 pixel decorated corners and 16 pixel repeatable straight edges, a plain flat near-black center area with no detail"),
     "statusbar": ((64, 32), (512, 256), "xy", "text",
         "a wide bar, 64x32 pixels, 16 pixel end caps on the left and the right, a plain flat dark center strip, a thin border line on the top and the bottom"),
-    "button": ((48, 48), (384, 384), "x", "text",
+    "button": ((48, 48), (256, 256), "x", "text",
         "a small square button frame, 48x48 pixels, 12 pixel corners, slightly raised look with a light top edge and a darker bottom edge, plain flat center"),
-    "tab": ((48, 48), (384, 384), "x", "textMuted",
+    "tab": ((48, 48), (256, 256), "x", "textMuted",
         "an inactive tab, 48x32 pixels, 8 pixel corners, muted colors, plain flat center"),
-    "tabActive": ((48, 48), (384, 384), "x", "text",
+    "tabActive": ((48, 48), (256, 256), "x", "text",
         "an active tab, 48x32 pixels, 8 pixel corners, bright accent color on the top edge, slightly lighter plain flat center"),
 }
 # Slices (top, right, bottom, left) in art pixels. Must match NINE in src/scripts/theme/logic.lua.
@@ -58,6 +59,10 @@ ROLE_OVERRIDE = {
     ("sosel", "button"): "a small square button frame, 48x48 pixels, 12 pixel corners, the TOP edge is a row of erupting "
         "volcano peaks with glowing orange lava and dark smoke on black basalt, the BOTTOM edge is lush green jungle "
         "leaves and ferns, plain flat dark center",
+    ("wysoom", "window"): "a seamless tileable ornamental pattern, 128x128 pixels, a dense symmetrical repeating motif of "
+        "overlapping wave scales, scallop shells, small shark fins and branching coral, like an ornate carved "
+        "tile, deep sea blue and teal with cyan highlights only, no pink, no red, no orange, "
+        "every shape clearly drawn, the edges match so it repeats without a visible seam",
 }
 SLICE = {"window": None, "panel": (16, 16, 16, 16), "statusbar": (8, 16, 8, 16),
          "button": (12, 12, 12, 12), "tab": (12, 12, 12, 12), "tabActive": (12, 12, 12, 12)}
