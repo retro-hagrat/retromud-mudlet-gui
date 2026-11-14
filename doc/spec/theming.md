@@ -36,7 +36,7 @@ THEME-001. A theme must be a Lua table with a fixed set of keys. Section 5 lists
 
 THEME-002. The GUI must ship at least these presets: `dark` (the default), `light`, and `high-contrast`. It can ship more, for example `amber` and `forest`.
 
-THEME-003. No module may contain a colour, a font name, or an image path. A module asks the theme module for the style of its role.
+THEME-003. A module must not contain a colour, a font name, or an image path. A module asks the theme module for the style of its role.
 
 THEME-004. The player must be able to swap the active theme while Mudlet runs. A swap must not need a restart.
 
@@ -131,9 +131,9 @@ A theme can be a separate package. The package holds a `theme.lua` file and its 
 ## 10. Verification
 
 1. Unit tests in plain Lua, without Mudlet:
-   - merging the override file, including unknown keys and wrong types;
-   - the function that builds a stylesheet for each role;
-   - the contrast ratio of each preset (THEME-013);
+   - merging the override file, including unknown keys and wrong types.
+   - the function that builds a stylesheet for each role.
+   - the contrast ratio of each preset (THEME-013).
    - the image lookup order, with a fake file check.
 2. Tests by hand in Mudlet: swapping between all presets, a missing image, a changed image (THEME-005), restoring the map colours on uninstall (THEME-015), and the container fields (section 8).
 
