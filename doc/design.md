@@ -172,6 +172,7 @@ Each module is a folder in `src/scripts/`. All state lives in the table `rmgui`.
 | `core` | The `rmgui` table, install and uninstall handlers, saved settings |
 | `layout` | Containers and borders. It saves the old border sizes and restores them on uninstall |
 | `vitals` | The prompt parser and the vitals gauges |
+| `theme` | Presets, merge, contrast, stylesheets, and image lookup (pure Lua, done). The apply function and the commands are not started. See `doc/spec/theming.md` |
 | `chat` | The chat engine (pure Lua, done) and the chat panel (not started). See `doc/spec/chat.md` |
 | `map-host` | Finds `rmap.map` and moves it into the layout |
 | `buttons` | The button bar |

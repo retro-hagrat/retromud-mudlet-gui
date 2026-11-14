@@ -58,7 +58,7 @@ THEME-012. The GUI must offer these commands: `rgui theme` (shows the active the
 
 THEME-013. Every preset must have enough contrast. The ratio uses the WCAG formula for relative luminance. The ratio of `text` and of `textMuted` against `surface` and against `surfaceAlt` must be at least 4.5 to 1. The ratio of `accent`, of `good`, `warn`, `danger`, `hp`, `sp`, and `ep` against `surface`, and of the exit lines against the map background must be at least 3 to 1. The colour `border` is decoration and has no limit. A test must compute these ratios for each preset and for the merged theme of a player. The test must fail when a ratio is below its limit.
 
-THEME-014. Text must sit on a solid or semi-transparent background, also when the theme has an image. A background image must never make text unreadable. The player can lower the opacity of an image with the key `imageOpacity`.
+THEME-014. The presets ship without images. An image of the player replaces the background of its role, and the text sits directly on it. The module does not check images. The file `README.txt` in the theme folder must tell the player that an image must keep the text readable. A later version can put a half-transparent layer over an image. See section 5.
 
 THEME-019. Theming is on by default. The GUI applies the saved theme, or `dark` when no theme is saved. Map theming is on by default. The player can turn map theming off with a setting.
 
@@ -86,8 +86,8 @@ A theme has these groups of keys. The names are a first proposal.
    - `hp`, `sp`, `ep`: the colours of the three gauges.
    - `map`: a table with `background` and `exits`.
 3. `fonts`: `family` (can be empty to use the default), `size` for normal text, and `sizeSmall`.
-4. `images`: a table that maps a role to a file name, for example `statusbar`, `panel`, `button`, and `window`. A value of `nil` means no image. Each entry can have a `mode` of `stretch` (a `border-image` stylesheet, which keeps text on top) or `plain` (`setBackgroundImage`, which draws the image at its own size and no text).
-5. `imageOpacity`: a number from 0 to 1.
+4. `images`: a table that maps a role to a file name, or to `false` for no image. The roles are `window`, `statusbar`, `panel`, `button`, `tab`, and `tabActive`. The first version stretches an image with a `border-image` stylesheet, which keeps the text on top. A mode that draws an image at its own size with `setBackgroundImage` is not in the first version.
+5. `imageOpacity` is not in the first version. Qt stylesheets have no opacity, and the research did not find one for a label. A player who wants a softer image edits the image. A later version can put a half-transparent layer over the image.
 6. `cmdline`: a table with `background` and `text`. The module uses it only when the player turns it on.
 
 Each role gets its stylesheet from a pure function. The function takes the theme and the role and returns a string. Tests can check this function without Mudlet.
