@@ -133,6 +133,10 @@ Without `--theme` and `--role`, the script makes every picture. The theme names 
 
 The script writes the pictures to `src/resources/themes/<theme>/<role>.png`. It keeps the raw downloads in `tmp/theme-art-raw/`, which git ignores. To try a picture without replacing the real one, add `--out <folder>`.
 
+### Draw a picture in code
+
+The image service could not draw waves that look like waves at 64 pixels. So the `wysoom` panel is drawn by a script and not generated: `tools/theme-art/wave_panel.py`. It makes frothy ocean waves on the top and the bottom, and a black border with small muted clouds on the sides. It needs only Pillow and no key. Edit the colors and the shapes at the top of the script, then run `python3 tools/theme-art/wave_panel.py`. Do not run `generate.py` for the `wysoom` panel afterward, because it replaces this picture.
+
 ### Edit the prompts
 
 The prompts are in `tools/theme-art/generate.py`. A full prompt has four parts, and you edit each part in its own place:

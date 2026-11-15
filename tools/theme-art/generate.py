@@ -262,6 +262,7 @@ def main():
     ap.add_argument("--dry-run", action="store_true"); ap.add_argument("--selftest", action="store_true")
     ap.add_argument("--from-raw", action="store_true", help="redo the cleanup from tmp/theme-art-raw, no API call")
     ap.add_argument("--derive-tabs", action="store_true", help="build tab.png and tabActive.png from button.png (no API call)")
+    ap.add_argument("--trim", type=int, metavar="N", help="thin the frame of an existing picture to its outer N pixels (needs --theme and --role, no API call)")
     ap.add_argument("--motif", help="replace the motif of the theme for this run")
     ap.add_argument("--out", help="write the cleaned images into this folder (as <theme>-<role>.png) instead of src/resources, and keep the raw files out of tmp/theme-art-raw")
     a = ap.parse_args()
@@ -285,6 +286,16 @@ def main():
             bar = derive_statusbar(Image.open(os.path.join(OUT, t, "panel.png")).convert("RGB"), pal[t], THIN_BAR.get(t, THIN[t]))
             bar.save(os.path.join(OUT, t, "statusbar.png"))
             print(f"{t}/statusbar: cut from the panel, worst text contrast {worst_contrast(bar, 'statusbar', pal[t]):.1f}")
+    if a.trim:
+        if not (a.theme and a.role) or a.role not in SLICE or SLICE[a.role] is None: sys.exit("--trim needs --theme and a framed --role")
+        path = os.path.join(OUT, a.theme, a.role + ".png")
+        img = Image.open(path).convert("RGB"); px = img.load()
+        for y in range(img.height):
+            for x in range(img.width):
+                if min(x, y, img.width - 1 - x, img.height - 1 - y) >= a.trim: px[x, y] = pal[a.theme][FILL[a.role]]
+        img.save(path)
+        print(f"{a.theme}/{a.role}: frame cut to {a.trim} px, worst text contrast {worst_contrast(img, a.role, pal[a.theme]):.1f}")
+        return
     if a.derive_tabs:
         for t in themes: write_derived(t)
         return
