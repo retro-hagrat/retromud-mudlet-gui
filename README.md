@@ -2,6 +2,8 @@
 
 This package adds a graphical interface to Mudlet for [RetroMUD](https://www.retromud.org). It has a status bar, two side columns, themes, health bars, a party panel, a chat panel, buttons, and aliases that walk you to world exits.
 
+![The Wood theme: chat window, live map of the Tsoda Pools, status bars and buttons](doc/images/wood-theme.png)
+
 The package works with [retromud-mudlet-mapper](../retromud-mudlet-mapper) but does not need it. The two packages talk only through events (`rmap.onRoom`).
 
 ## Install
