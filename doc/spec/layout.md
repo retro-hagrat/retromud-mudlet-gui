@@ -76,7 +76,7 @@ LAYOUT-001. The wide layout must have the status bar at the top, the chat column
 
 LAYOUT-002. The containers must attach to their borders with `Adjustable.Container`. The borders must follow the size of the containers when the player resizes them.
 
-LAYOUT-003. When the layout starts, it must save the old values of the four borders with `getBorderTop()`, `getBorderRight()`, `getBorderBottom()`, and `getBorderLeft()`. In `teardown()`, it must put them back. See "Install and uninstall" in `doc/design.md`.
+LAYOUT-003. When the layout starts, it must save the old values of the four borders with `getBorderTop()`, `getBorderRight()`, `getBorderBottom()`, and `getBorderLeft()`. In `teardown()`, it must put them back. See "Install and uninstall" in `doc/design.md`. If the saved borders equal the borders the layout itself would set for this window, they are left over from an earlier session (Mudlet keeps them), and `teardown()` must restore 0 instead.
 
 LAYOUT-004. The main text window must keep at least 80 characters of width. The module must compute the width from the font size of the main window. If the window is too narrow for both columns at their minimum widths, the layout must switch to the compact layout.
 

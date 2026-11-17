@@ -258,6 +258,21 @@ function L.init(env)
         local ok, v = pcall(_G["getBorder" .. side])
         S.old[side] = ok and v or 0
     end
+    -- Mudlet keeps the borders between sessions, so after a restart the "old" borders can be the ones
+    -- this layout set last time. Restoring those would leave empty bars after an uninstall.
+    local okW, W, H = pcall(env.windowSize)
+    local cfg = type(env.settings) == "table" and env.settings.layout
+    local okC, r = pcall(L.calc, {
+        windowWidth = W, windowHeight = H, charWidth = env.charWidth(),
+        mode = type(cfg) == "table" and cfg.mode or nil, saved = type(cfg) == "table" and cfg or {},
+    })
+    -- live: attachToBorder leaves the top and left 5 px larger than calc, so match within TOL
+    local TOL = 8
+    local function near(a, b) return math.abs(a - b) <= TOL end
+    if okW and okC and type(r) == "table" and near(S.old.Top, r.top) and near(S.old.Right, r.right)
+        and near(S.old.Bottom, r.bottom) and near(S.old.Left, r.left) then
+        S.old = { Top = 0, Right = 0, Bottom = 0, Left = 0 }
+    end
     local ok, err = pcall(build)
     if not ok then
         say("layout objects failed: " .. tostring(err), "err")

@@ -229,6 +229,20 @@ L.teardown()
 eq(F.borders.left, 8, "restored to the original after double init")
 empty("re-init teardown")
 
+---------------------------------------------------------------- borders left over from an earlier session
+env = mk()
+L.init(env)
+local ours = { top = F.borders.top, right = F.borders.right, bottom = F.borders.bottom, left = F.borders.left }
+L.teardown()
+env = mk()
+F.borders = { top = ours.top + 5, right = ours.right, bottom = ours.bottom, left = ours.left + 5 } -- Mudlet kept them; live they are 5 px above calc on the top and left
+L.init(env)
+L.teardown()
+eq(F.borders.left, 0, "stale left border is not restored")
+eq(F.borders.right, 0, "stale right border is not restored")
+eq(F.borders.top, 0, "stale top border is not restored")
+empty("stale borders teardown")
+
 ---------------------------------------------------------------- pending timer killed on teardown
 env = mk()
 L.init(env)
