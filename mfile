@@ -3,6 +3,6 @@
   "title": "RetroMUD GUI",
   "description": "Geyser GUI for RetroMUD (www.retromud.org): status bar and mapper host.",
   "author": "retromud contributors",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "dependencies": "retromud"
 }
