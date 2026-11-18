@@ -238,6 +238,33 @@ for _, l in ipairs(big) do e:feed(l, l:match("^Hp:%d") ~= nil) end
 local per = (os.clock() - t0) / #big * 1000
 eq(per < 1, true, ("speed under 1 ms per line (%.4f ms)"):format(per))
 
+---------------------------------------------------------------- guild lines without angle brackets, odd closers, shouts
+m = one({ "Shane __[Jomsviking]__) what?" }, "bare guild")
+eq(m.form, "guild", "bare guild form"); eq(m.channel, "jomsviking", "bare guild channel")
+eq(m.speaker, "Shane", "bare guild speaker"); eq(m.text, "what?", "bare guild text")
+eq(#run({ "Shane says __[Jomsviking]__) what?" }), 0, "decoration not right after the name")
+eq(#run({ "Shane __[Jomsviking]__)" }), 0, "bare guild with no text")
+
+m = one({ "Aldric [retro}: hello" }, "mixed closer")
+eq(m.channel, "retro", "mixed closer channel"); eq(m.rank, "[}", "mixed closer rank")
+m = one({ "<retro]: Bran waves" }, "mixed closer action")
+eq(m.form, "action", "mixed closer action form")
+eq(#run({ "Aldric [nosuch}: hello" }), 0, "unknown channel with a mixed closer")
+
+m = one({ "Eros shouts, 'anyone for a group?'" }, "shout")
+eq(m.form, "shout", "shout form"); eq(m.group, "info", "shout group")
+eq(m.speaker, "Eros", "shout speaker"); eq(m.text, "anyone for a group?", "shout text, quote removed")
+m = one({ "You shout, 'hello'" }, "you shout")
+eq(m.speaker, "You", "you shout speaker"); eq(m.text, "hello", "you shout text")
+m = one({ "Eros shouts, 'matchmaking on", "Sosel!'" }, "wrapped shout")
+eq(m.text, "matchmaking on Sosel!", "wrapped shout joined")
+local out = run({ "Eros shouts, 'hello", "Aldric [retro]: hi" })
+eq(#out, 2, "an unclosed shout ends at the next message"); eq(out[1].text, "hello", "unclosed shout text")
+out = run({ "Eros shouts, 'hello", "", "more" })
+eq(#out, 1, "a blank line ends an unclosed shout"); eq(out[1].text, "hello", "blank line text")
+out = run({ "Eros shouts, 'a", "b", "c", "d", "e" })
+eq(#out, 1, "an unclosed shout stops growing"); eq(out[1].text, "a b c d", "shout capped at four lines")
+
 if COVER then
     debug.sethook()
     for _, f in ipairs({ "engine.lua", "rules.lua" }) do

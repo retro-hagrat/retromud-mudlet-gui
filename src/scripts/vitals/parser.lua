@@ -39,18 +39,26 @@ function V.parse(line)
             pos = sp + 1
         end
     end
+    local fields = false
     while true do
         local _, sp = line:find("^ +", pos)
-        if not sp then return nil end
+        if not sp then
+            -- the short tick prompt ends right after Ep; a field with no closing ">" is not a prompt
+            if pos > #line and not fields then return r end
+            return nil
+        end
         pos = sp + 1
+        if pos > #line and not fields then return r end
         if line:sub(pos, pos) == ">" then return r end
         local label, v, e = line:match("^(%a+): ?(-?%d+)()", pos)
-        local key = label == "Gold" and "gold" or label == "Exp" and "exp" or nil
-        -- Gold must come before Exp, each at most once.
-        if not key or r[key] ~= nil or (key == "gold" and r.exp ~= nil) then return nil end
+        -- Money and Xp are other spellings of Gold and Exp; the two may come in either order
+        local key = (label == "Gold" or label == "Money") and "gold"
+            or (label == "Exp" or label == "Xp") and "exp" or nil
+        if not key or r[key] ~= nil then return nil end
         v = num(v)
         if not v then return nil end
         r[key] = v
+        fields = true
         pos = e
     end
 end

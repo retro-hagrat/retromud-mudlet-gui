@@ -265,3 +265,9 @@ The player confirmed on 2026-11-14 that these 16 channels are all the guild chan
 | templar | `[TEMPLAR]:` |
 
 These 16 lines are the first test cases for the rule engine. See section 7.
+
+## Appendix D: forms added after a wizard's review (2026-11-18)
+
+- **Guild line with no angle brackets.** `Name decoration text`, for example `Shane __[Jomsviking]__) what?`. It is read only when the decoration is one of the 16 in Appendix C and comes right after the name, and it needs some text.
+- **Mixed closers.** A channel opener may close with `]`, `}` or `>`: `Name [retro}: text` is a message on `retro`. The channel name must still be a known channel.
+- **Shouts.** `Name shouts, 'text'` and `You shout, 'text'` are messages in the `info` group. The closing quote is removed. A shout with no closing quote continues on the next line, except when that line is blank, is a message of its own, or the shout already has 4 lines.
