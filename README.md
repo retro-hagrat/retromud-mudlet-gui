@@ -10,7 +10,7 @@ The package works with [retromud-mudlet-mapper](../retromud-mudlet-mapper) but d
 
 1. Download `retromud-gui.mpackage`. The `dist` folder of this repository and the Releases page have the same file.
 2. In Mudlet, open the Package Manager (`Alt+O`), click Install, and pick the file.
-3. To get map features, also install the mapper package (`retromud`).
+3. To get map features, also install the mapper package (`retromud-mapper`).
 
 ## Build
 

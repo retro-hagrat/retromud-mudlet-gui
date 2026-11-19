@@ -34,7 +34,7 @@ local function world(opts)
         local top = Geyser.Container:new({ name = "slot.top", x = 0, y = 0, width = 400, height = 20 })
         rmgui.layout = { get = function(slot) return slot == "top" and top or nil end }
     end
-    if opts.mapper ~= false then FM.packages.retromud = "1.0" end
+    if opts.mapper ~= false then FM.packages["retromud-mapper"] = "1.0" end
     env = rmgui.core.makeEnv()
     said = {}
     env.say = function(m) said[#said + 1] = m end
@@ -100,11 +100,11 @@ eq(lbl().textColor ~= nil, true, "later redraw keeps the colour")
 -- mapper installed later flips the text
 world({ mapper = false })
 eq(text(), "no room yet  (mapper not installed)", "mapper missing text")
-FM.packages.retromud = "1.0"
-FM.fire("sysInstallPackage", "retromud")
+FM.packages["retromud-mapper"] = "1.0"
+FM.fire("sysInstallPackage", "retromud-mapper")
 eq(text(), "no room yet", "install flips the text")
-FM.packages.retromud = nil
-FM.fire("sysUninstallPackage", "retromud")
+FM.packages["retromud-mapper"] = nil
+FM.fire("sysUninstallPackage", "retromud-mapper")
 eq(text(), "no room yet  (mapper not installed)", "uninstall flips it back")
 
 -- seeding from rmap.api

@@ -78,7 +78,7 @@ local function on(event, fn)
 end
 
 local function recheck()
-    state.mapperInstalled = env.packageVersion("retromud") ~= nil
+    state.mapperInstalled = env.packageVersion("retromud-mapper") ~= nil
     render()
 end
 
@@ -99,7 +99,7 @@ function S.init(e)
     if env then S.teardown() end
     S.liveEnv = e
     env, state, handlers, said, movedSeen, ctx, label = e, fresh(), {}, {}, false, nil, nil
-    pcall(function() state.mapperInstalled = env.packageVersion("retromud") ~= nil end)
+    pcall(function() state.mapperInstalled = env.packageVersion("retromud-mapper") ~= nil end)
     pcall(seed)
     pcall(rmgui.theme.register, ELEMENT, function(c)
         ctx = c

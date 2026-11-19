@@ -33,7 +33,7 @@ local function world(opts)
     F.expanded = nil
     local env = rmgui.core.makeEnv()
     env.say = function(m, l) said[#said + 1] = m end
-    if not opts.noMapper then F.packages.retromud = "1.0" end
+    if not opts.noMapper then F.packages["retromud-mapper"] = "1.0" end
     return env
 end
 local function theme(name)

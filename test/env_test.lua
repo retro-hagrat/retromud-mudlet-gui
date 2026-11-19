@@ -75,7 +75,7 @@ local tk = env.timer(5, function() fired = "no" end); eq(env.killTimer(tk), true
 F.setWindowSize(640, 480); local w, h = env.windowSize(); eq(w + h, 1120, "windowSize")
 eq(env.charWidth(), 8, "charWidth"); F.setCharSize(9, 16); eq(env.charWidth(), 9, "charWidth follows font")
 local realCalc = calcFontSize; calcFontSize = function() return nil end; eq(env.charWidth(), 8, "charWidth fallback"); calcFontSize = realCalc
-eq(env.packageVersion("retromud"), nil, "no package"); F.packages.retromud = "0.0.4"; eq(env.packageVersion("retromud"), "0.0.4", "package version")
+eq(env.packageVersion("retromud-mapper"), nil, "no package"); F.packages["retromud-mapper"] = "0.0.4"; eq(env.packageVersion("retromud-mapper"), "0.0.4", "package version")
 local realGpi = getPackageInfo; getPackageInfo = function() return {} end; eq(env.packageVersion("x"), nil, "non string version"); getPackageInfo = realGpi
 F.feedLine("a line", { prompt = true }); eq(env.isPrompt(), true, "isPrompt"); eq(env.currentLine(), "a line", "currentLine")
 env.expandAlias("look"); eq(F.expanded[1], "look", "expandAlias")

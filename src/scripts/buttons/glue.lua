@@ -37,7 +37,7 @@ local function flagMapping()
 end
 
 local function missing()
-    local ok, v = pcall(env.packageVersion, "retromud")
+    local ok, v = pcall(env.packageVersion, "retromud-mapper")
     return not ok or v == nil
 end
 
