@@ -34,10 +34,12 @@ F.reset(); rmgui = nil
 -- Mudlet runs Lua 5.1: these do not exist there
 math.tointeger, math.type = nil, nil
 F.packages["retromud-gui"] = "0.0.1"
+F.packages["mudlet-base-ui"] = "1"; F.packages["echo"] = "1"
 setMapBackgroundColor(1, 2, 3); setMapRoomExitsColor(4, 5, 6)
 load()
 local st = rmgui.core.state()
 eq(st.started, true, "started at load"); eq(#st.failed, 0, "no failed module"); eq(st.order[#st.order], "boot", "boot is last")
+eq(F.packages["mudlet-base-ui"], nil, "starter interface removed"); eq(F.packages["echo"], "1", "other packages kept")
 eq(F.counts().aliases, 4, "four aliases"); eq(rmgui.theme.state.active, "wood", "default theme applied")
 eq(names() > 5, true, "objects built"); eq(F.objects["rmgui.chat.console.all"] ~= nil, true, "chat console built without math.tointeger")
 

@@ -117,6 +117,18 @@ eq(O("mapper"), nil, "fallback replaced")
 eq(pane.parent, slot, "adopted later")
 rmgui.maphost.teardown()
 
+-- the mapper announces its pane: adopt at once, with no room event
+env = world()
+rmap = nil
+mapExists = true
+rmgui.maphost.init(env)
+pane = Geyser.Container:new({ name = "rmap.map" })
+rmap = { api = { container = function() return "rmap.map" end } }
+F.fire("rmap.onUiReady", "rmap.map")
+eq(pane.parent, slot, "adopted on onUiReady")
+eq(O("mapper"), nil, "fallback replaced on onUiReady")
+rmgui.maphost.teardown()
+
 -- name unknown, not a string, or adopt raising: fallback
 for _, c in ipairs({ function() return "nope" end, function() return nil end, function() error("x") end }) do
     env = world()

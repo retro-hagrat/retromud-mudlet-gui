@@ -9,7 +9,8 @@ local M = rmgui.maphost
 local prevEnv = M.env_
 if M.teardown then pcall(M.teardown) end
 local MAPPER, HOLDER = "rmgui.maphost.mapper", "rmgui.maphost.placeholder"
-local EVENTS = { "rmgui.onLayout", "rmap.onRoom", "rmap.onMoved" }
+-- rmap.onUiReady: the mapper just made its pane (installed after the GUI); adopt it at once, not on the next room
+local EVENTS = { "rmgui.onLayout", "rmap.onRoom", "rmap.onMoved", "rmap.onUiReady" }
 
 local env, ids, ctx, adopted, mapper, holder
 
@@ -39,6 +40,7 @@ local function tryAdopt(slot)
     local ok2, obj = pcall(function() return Geyser.windowList[name] end)
     if not ok2 or type(obj) ~= "table" then return false end
     local ok3 = pcall(function()
+        obj:show() -- resize and move are ignored while the pane is hidden (an update leaves it hidden)
         obj:changeContainer(slot)
         obj:resize("100%", "100%")
         obj:move(0, 0)
@@ -57,7 +59,9 @@ end
 -- no clicks (seen live). The widget is raised again each time.
 local function raiseMap()
     local w = adopted or mapper
-    if w then pcall(w.raise, w) end
+    -- shown too: the mapper's pane can be left hidden by an uninstall or the layout build (seen live after an update).
+    -- raiseAll lifts the pane's frame and children, not just the frame: raise alone left it behind the panel labels.
+    if w then pcall(w.show, w) pcall(w.raiseAll or w.raise, w) end
 end
 
 local function refresh()

@@ -4,13 +4,13 @@ This package adds a graphical interface to Mudlet for [RetroMUD](https://www.ret
 
 ![The Wood theme: chat window, live map of the Tsoda Pools, status bars and buttons](doc/images/wood-theme.png)
 
-The package works with [retromud-mudlet-mapper](../retromud-mudlet-mapper) but does not need it. The two packages talk only through events (`rmap.onRoom`).
+The package works with [retromud-mudlet-mapper](../retromud-mudlet-mapper) but does not need it. The two packages talk through events (`rmap.onRoom`, `rmap.onMoved`, `rmap.onState`, `rmap.onMapping`, `rmap.onUiReady`) and through `rmap.api`. Mapper 0.0.26 or newer provides all of them.
 
 ## Install
 
 1. Download `retromud-gui.mpackage`. The `dist` folder of this repository and the Releases page have the same file.
 2. In Mudlet, open the Package Manager (`Alt+O`), click Install, and pick the file.
-3. To get map features, also install the mapper package (`retromud-mapper`).
+3. Mudlet installs the mapper package (`retromud-mapper`) by itself when you install the GUI from the package repository. If you install the file by hand, install the mapper too.
 
 ## Build
 
@@ -47,7 +47,7 @@ Your own buttons: twelve buttons (3 rows of 4) sit under the chat. To set the na
 
 Known limits:
 
-- The map host builds its own map widget until the mapper creates the `rmap.map` pane.
+- The map host builds its own map widget only when the mapper (older than 0.0.26) has no `rmap.map` pane.
 - The map toggle and the `where`, `scan` and `undo` buttons use the commands of the mapper.
 - Not every screen has been checked by eye yet.
 

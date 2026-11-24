@@ -42,9 +42,21 @@ function rmgui.boot.help()
     env.cecho(table.concat(lines, "\n") .. "\n")
 end
 
+-- Mudlet's starter interface draws its own map, chat and vitals over ours: remove it (Package Manager restores it).
+local function dropStarterUi()
+    if not (getPackages and uninstallPackage) then return end
+    for _, pkg in ipairs(getPackages()) do
+        if pkg == "mudlet-base-ui" then
+            uninstallPackage(pkg)
+            env.say("removed Mudlet's starter interface (mudlet-base-ui); it draws its own map, chat and vitals over this GUI", "warn")
+        end
+    end
+end
+
 -- registered last: runs after every module built its elements, stops first
 rmgui.core.register("boot", {
     init = function()
+        dropStarterUi()
         killAliases()
         aliasIds[1] = env.alias("^rgui theme(.*)$", function() run(rmgui.theme.command, matches[2]) end)
         aliasIds[2] = env.alias("^rgui layout(.*)$", function() run(rmgui.layout.command, matches[2]) end)
